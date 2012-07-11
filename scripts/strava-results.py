@@ -23,7 +23,7 @@ def convert(name):
 parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
 stretch = lambda s,l: (str(s)[:l] + " "* (l-len(str(s))))
 stretch_r = lambda s,l: (" "* (l-len(str(s)))+ str(s)[:l])
-km = lambda n: round(n/1000,1)
+km = lambda n: round(n/1000.,1)
 
 
 def store(obj):

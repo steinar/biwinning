@@ -105,13 +105,14 @@ def generate_report():
         rides[user] = map(lambda item: get_ride(item['id']), load_rides(id))
 
     users = USERS.keys()
-    print stretch('', 22) + " ".join(map(lambda u: stretch_r(u, 10), users))
-    print " "*22 + "-"*(12*(len(USERS)))
-    print stretch('Rides', 22) + "  ".join(map(lambda u: stretch_r(len(rides[u]), 10), users))
+    print stretch('', 22) + " | ".join(map(lambda u: stretch_r(u, 10), users))
+    print " "*22 + "-+-".join(["-"*10]*len(USERS))
+    print stretch('Rides', 22) + " | ".join(map(lambda u: stretch_r(len(rides[u]), 10), users))
     print stretch('Distance (this year)', 22) + \
-          "  ".join(map(lambda u: stretch_r(km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_year, rides[u])))), 10), users))
+          " | ".join(map(lambda u: stretch_r(km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_year, rides[u])))), 10), users))
     print stretch('Distance (this week)', 22) + \
-          "  ".join(map(lambda u: stretch_r(km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_week, rides[u])))), 10), users))
+          " | ".join(map(lambda u: stretch_r(km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_week, rides[u])))), 10), users))
+    print " "*22 + "-+-".join(["-"*10]*len(USERS))
 
 if __name__ == '__main__':
     generate_report()

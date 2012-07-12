@@ -5,6 +5,7 @@ import pickle
 import os
 
 USERS = {
+    'axel': 730893,
     'hlynur': 408159,
     'holmar': 469390,
     'siggi': 694837,

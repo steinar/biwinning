@@ -30,6 +30,8 @@ km = lambda n: round(n/1000.,1)
 
 
 def store(obj):
+    if not os.path.exists('./data/'):
+        os.makedirs('./data/')
     output = open('data/%s-%s.pkl' % (obj.__class__.__name__, obj.id) , 'wb')
     pickle.dump(obj, output)
     output.close()

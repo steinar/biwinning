@@ -1,5 +1,7 @@
-import urllib, simplejson
+import urllib
+import simplejson
 import datetime
+from dateutil.relativedelta import relativedelta
 import re
 import pickle
 import os
@@ -74,6 +76,23 @@ class Ride(object):
         return self.start_date.isocalendar()[:2] == datetime.datetime.today().isocalendar()[:2]
 
     @property
+    def is_last_week(self):
+        last_week = (datetime.datetime.today()+datetime.timedelta(days=-7)).isocalendar()
+        return self.start_date.isocalendar()[:2] == last_week[:2]
+
+    @property
+    def is_this_month(self):
+        today = datetime.datetime.today()
+        year_month = lambda d: (d.year, d.month)
+        return year_month(self.start_date) == year_month(today)
+
+    @property
+    def is_last_month(self):
+        last_month = (datetime.datetime.today()+relativedelta(months=-1))
+        year_month = lambda d: (d.year, d.month)
+        return year_month(self.start_date) == year_month(last_month)
+
+    @property
     def is_this_year(self):
         return self.start_date.isocalendar()[0] == datetime.datetime.today().isocalendar()[0]
 
@@ -105,14 +124,20 @@ def generate_report():
         print "Loading rides for %s" % (user, )
         rides[user] = map(lambda item: get_ride(item['id']), load_rides(id))
 
+    results = (
+        ('All time (rides)', lambda user: len(rides[user])),
+        ('This year (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_year, rides[user]))))),
+        ('Last month (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_month, rides[user]))))),
+        ('Last week (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_week, rides[user]))))),
+        ('This month (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_month, rides[user]))))),
+        ('This week (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_week, rides[user]))))),
+    )
+
     users = USERS.keys()
     print stretch('', 22) + " | ".join(map(lambda u: stretch_r(u, 10), users))
     print " "*22 + "-+-".join(["-"*10]*len(USERS))
-    print stretch('Rides', 22) + " | ".join(map(lambda u: stretch_r(len(rides[u]), 10), users))
-    print stretch('Distance (this year)', 22) + \
-          " | ".join(map(lambda u: stretch_r(km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_year, rides[u])))), 10), users))
-    print stretch('Distance (this week)', 22) + \
-          " | ".join(map(lambda u: stretch_r(km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_week, rides[u])))), 10), users))
+    for name, fn in results:
+        print stretch(name, 22) + " | ".join(map(lambda u: stretch_r(fn(u), 10), users))
     print " "*22 + "-+-".join(["-"*10]*len(USERS))
 
 if __name__ == '__main__':

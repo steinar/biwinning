@@ -15,6 +15,15 @@ USERS = {
     'steinar': 408166,
 }
 
+results = (
+    ('All time (rides)', lambda user, rides: len(rides[user])),
+    ('This year (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_year, rides[user]))))),
+    ('Last month (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_month, rides[user]))))),
+    ('Last week (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_week, rides[user]))))),
+    ('This month (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_month, rides[user]))))),
+    ('This week (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_week, rides[user]))))),
+)
+
 
 def convert(name):
     """Camel case to underscore. veryNice => very_nice
@@ -120,27 +129,29 @@ def get_ride(id):
     return store(Ride.from_dict(json("http://www.strava.com/api/v1/rides/%s" % id)['ride']))
 
 
-def generate_report():
+def get_rides(user_map):
     rides = {}
-    for user,id in USERS.items():
+    for user,id in [(k,user_map[k]) for k in sorted(user_map)]:
         print "Loading rides for %s" % (user, )
         rides[user] = map(lambda item: get_ride(item['id']), load_rides(id))
+    return rides
 
-    results = (
-        ('All time (rides)', lambda user: len(rides[user])),
-        ('This year (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_year, rides[user]))))),
-        ('Last month (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_month, rides[user]))))),
-        ('Last week (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_week, rides[user]))))),
-        ('This month (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_month, rides[user]))))),
-        ('This week (km)', lambda user: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_week, rides[user]))))),
-    )
 
-    users = USERS.keys()
-    print stretch('', 22) + " | ".join(map(lambda u: stretch_r(u, 10), users))
+def generate_report():
+    rides = get_rides(USERS)
+    users = sorted(USERS.keys())
+
+    print stretch('', 22) + \
+          " | ".join(map(lambda u: stretch_r(u, 10), users))
+
     print " "*22 + "-+-".join(["-"*10]*len(USERS))
+
     for name, fn in results:
-        print stretch(name, 22) + " | ".join(map(lambda u: stretch_r(fn(u), 10), users))
+        print stretch(name, 22) + \
+              " | ".join(map(lambda u: stretch_r(fn(u, rides), 10), users))
+
     print " "*22 + "-+-".join(["-"*10]*len(USERS))
+
 
 if __name__ == '__main__':
     generate_report()

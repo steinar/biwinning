@@ -1,4 +1,5 @@
 import urllib
+import itertools
 import simplejson
 import datetime
 from dateutil.relativedelta import relativedelta
@@ -22,6 +23,8 @@ results = (
     ('Last week (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_week, rides[user]))))),
     ('This month (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_month, rides[user]))))),
     ('This week (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_this_week, rides[user]))))),
+    ('Last 28 days (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_28_days, rides[user]))))),
+    ('Last 7 days (km)', lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.is_last_7_days, rides[user]))))),
 )
 
 
@@ -104,6 +107,20 @@ class Ride(object):
         return year_month(self.start_date) == year_month(last_month)
 
     @property
+    def is_last_28_days(self):
+        d = datetime.datetime.today()
+        shift = datetime.timedelta(days=-28, hours=-d.hour, minutes=-d.minute, seconds=d.second, microseconds=-d.microsecond)
+        relative_date = d+shift
+        return self.start_date >= relative_date
+
+    @property
+    def is_last_7_days(self):
+        d = datetime.datetime.today()
+        shift = datetime.timedelta(days=-7, hours=-d.hour, minutes=-d.minute, seconds=d.second, microseconds=-d.microsecond)
+        relative_date = d+shift
+        return self.start_date >= relative_date
+
+    @property
     def is_this_year(self):
         return self.start_date.isocalendar()[0] == datetime.datetime.today().isocalendar()[0]
 
@@ -119,8 +136,9 @@ def json(url):
 def load_rides(id, offset=0):
     rides = json("http://app.strava.com/api/v1/rides?athleteId=%s&offset=%s" % (id, offset))['rides']
     if (len(rides)-offset) == 50:
-        return rides + load_rides(id, offset+50)
+        rides = itertools.chain(rides, load_rides(id, offset+50))
     return rides
+
 
 
 def get_ride(id):

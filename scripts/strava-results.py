@@ -7,14 +7,7 @@ import re
 import pickle
 import os
 
-USERS = {
-    'axel': 730893,
-    'hlynur': 408159,
-    'holmar': 469390,
-    'siggi': 694837,
-    'skuli': 519005,
-    'steinar': 408166,
-}
+CLUB_ID = 7459
 
 results = (
     ('All time (rides)', lambda user, rides: len(rides[user])),
@@ -39,6 +32,7 @@ parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
 stretch = lambda s,l: (str(s)[:l] + " "* (l-len(str(s))))
 stretch_r = lambda s,l: (" "* (l-len(str(s)))+ str(s)[:l])
 km = lambda n: round(n/1000.,1)
+first_name = lambda s: s.split()[0]
 
 
 def store(obj):
@@ -132,6 +126,10 @@ def json(url):
     f = urllib.urlopen(url)
     return simplejson.loads(f.read())
 
+def load_club_members(club_id):
+    club = json('http://app.strava.com/api/v1/clubs/%s/members' % club_id)
+    return club['club']['name'].encode('utf-8', 'ignore'), \
+           dict(map(lambda m: (m['name'].encode('utf-8', 'ignore'), m['id']), club['members']))
 
 def load_rides(id, offset=0):
     rides = json("http://app.strava.com/api/v1/rides?athleteId=%s&offset=%s" % (id, offset))['rides']
@@ -150,25 +148,29 @@ def get_ride(id):
 def get_rides(user_map):
     rides = {}
     for user,id in [(k,user_map[k]) for k in sorted(user_map)]:
-        print "Loading rides for %s" % (user, )
+        print "Loading rides for %s" % (first_name(user), )
         rides[user] = map(lambda item: get_ride(item['id']), load_rides(id))
     return rides
 
 
 def generate_report():
-    rides = get_rides(USERS)
-    users = sorted(USERS.keys())
+    club_name, members = load_club_members(CLUB_ID)
+
+    print "Loading rides for club %s" % club_name
+
+    rides = get_rides(members)
+    users = sorted(members.keys())
 
     print stretch('', 22) + \
-          " | ".join(map(lambda u: stretch_r(u, 10), users))
+          " | ".join(map(lambda u: stretch_r(first_name(u), 10), users))
 
-    print " "*22 + "-+-".join(["-"*10]*len(USERS))
+    print " "*22 + "-+-".join(["-"*10]*len(members))
 
     for name, fn in results:
         print stretch(name, 22) + \
               " | ".join(map(lambda u: stretch_r(fn(u, rides), 10), users))
 
-    print " "*22 + "-+-".join(["-"*10]*len(USERS))
+    print " "*22 + "-+-".join(["-"*10]*len(members))
 
 
 if __name__ == '__main__':

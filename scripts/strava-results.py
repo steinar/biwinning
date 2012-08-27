@@ -32,7 +32,7 @@ def convert(name):
 parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
 stretch = lambda s,l: (str(s)[:l] + " "* (l-len(str(s).decode("utf-8"))))
 stretch_r = lambda s,l: (" "* (l-len(str(s).decode("utf-8")))+ str(s)[:l])
-km = lambda n: "%skm" % round(n/1000.,1)
+km = lambda n: "%s km" % round(n/1000.,1)
 m = lambda n: "%s m" % round(n,1)
 first_name = lambda s: s.split()[0]
 
@@ -207,12 +207,12 @@ def generate_report():
         week_distance_fn = lambda user, rides: sum(map(lambda r: r.distance,  filter(lambda r: r.week_id == week_id, rides[user])))
         dist = map(lambda u: week_distance_fn(u, rides), users)
         mark_max = lambda s,l: "*" if s == max(l) else ""
-        print stretch(week_id, 22) +\
+        print stretch("Week: %s    dist." % week_id, 22) +\
               " | ".join(map(lambda d: stretch_r(mark_max(d, dist) + km(d), 10), dist))
 
         elevation_fn = lambda user, rides: sum(map(lambda r: r.elevation_gain,  filter(lambda r: r.week_id == week_id, rides[user])))
         elev = map(lambda u: elevation_fn(u, rides), users)
-        print stretch(week_id, 22) +\
+        print stretch_r("elev.", 22) +\
               " | ".join(map(lambda e: stretch_r(mark_max(e, elev) + m(e), 10), elev))
 
         print " "*22 + "-+-".join(["-"*10]*len(members))

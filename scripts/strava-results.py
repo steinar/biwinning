@@ -32,6 +32,7 @@ parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
 stretch = lambda s,l: (str(s)[:l] + " "* (l-len(str(s))))
 stretch_r = lambda s,l: (" "* (l-len(str(s)))+ str(s)[:l])
 km = lambda n: round(n/1000.,1)
+m = lambda n: n
 first_name = lambda s: s.split()[0]
 
 
@@ -82,6 +83,10 @@ class Ride(object):
     @property
     def is_this_week(self):
         return self.start_date.isocalendar()[:2] == datetime.datetime.today().isocalendar()[:2]
+
+    @property
+    def week_id(self):
+        return "%s-%s" % self.start_date.isocalendar()[:2]
 
     @property
     def is_last_week(self):
@@ -161,6 +166,8 @@ def generate_report():
     rides = get_rides(members)
     users = sorted(members.keys())
 
+    weeks = set(map(lambda x: x.week_id, itertools.chain(*rides.values())))
+
     print stretch('', 22) + \
           " | ".join(map(lambda u: stretch_r(first_name(u), 10), users))
 
@@ -171,6 +178,17 @@ def generate_report():
               " | ".join(map(lambda u: stretch_r(fn(u, rides), 10), users))
 
     print " "*22 + "-+-".join(["-"*10]*len(members))
+
+    for week_id in sorted(weeks)[-5:]:
+        week_distance_fn = lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.week_id == week_id, rides[user]))))
+        print stretch(week_id, 22) +\
+              " | ".join(map(lambda u: stretch_r(week_distance_fn(u, rides), 10), users))
+
+        elevation_fn = lambda user, rides: m(sum(map(lambda r: r.elevation_gain,  filter(lambda r: r.week_id == week_id, rides[user]))))
+        print stretch(week_id, 22) +\
+              " | ".join(map(lambda u: stretch_r(elevation_fn(u, rides), 10), users))
+
+        print " "*22 + "-+-".join(["-"*10]*len(members))
 
 
 if __name__ == '__main__':

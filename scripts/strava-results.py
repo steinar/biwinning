@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 import re
 import pickle
 import os
+import sys
 
 CLUB_ID = 7459
 
@@ -31,8 +32,8 @@ def convert(name):
 parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
 stretch = lambda s,l: (str(s)[:l] + " "* (l-len(str(s).decode("utf-8"))))
 stretch_r = lambda s,l: (" "* (l-len(str(s).decode("utf-8")))+ str(s)[:l])
-km = lambda n: round(n/1000.,1)
-m = lambda n: n
+km = lambda n: "%skm" % round(n/1000.,1)
+m = lambda n: "%s m" % round(n,1)
 first_name = lambda s: s.split()[0]
 
 
@@ -52,6 +53,11 @@ def get(cls, id):
         return pickle.  load(input)
     return None
 
+class Rides(dict):
+    pass
+
+class Club(dict):
+    id = 'gv'
 
 class Ride(object):
     description = None
@@ -131,8 +137,12 @@ def json(url):
     f = urllib.urlopen(url)
     return simplejson.loads(f.read())
 
-def load_club_members(club_id):
-    club = json('http://app.strava.com/api/v1/clubs/%s/members' % club_id)
+def load_club_members(club_id, use_cache=True):
+    if use_cache and get(Club, 'gv'):
+        club = get(Club, 'gv')
+    else:
+        club = json('http://app.strava.com/api/v1/clubs/%s/members' % club_id)
+        store(Club(club))
     return club['club']['name'].encode('utf-8', 'ignore'), \
            dict(map(lambda m: (m['name'].encode('utf-8', 'ignore'), m['id']), club['members']))
 
@@ -150,20 +160,30 @@ def get_ride(id):
     return store(Ride.from_dict(json("http://www.strava.com/api/v1/rides/%s" % id)['ride']))
 
 
-def get_rides(user_map):
-    rides = {}
+def get_rides(user_map, use_cache=True):
+    key = "-".join(user_map.keys())
+    if use_cache and get(Rides, key):
+        return get(Rides, key)
+    rides = Rides()
+    rides.id = key
+
     for user,id in [(k,user_map[k]) for k in sorted(user_map)]:
         print "Loading rides for %s" % (first_name(user), )
         rides[user] = map(lambda item: get_ride(item['id']), load_rides(id))
-    return rides
+    return store(rides)
 
 
 def generate_report():
-    club_name, members = load_club_members(CLUB_ID)
+    use_cache = len(sys.argv) == 1 or sys.argv[1] == reload
 
-    print "Loading rides for club %s" % club_name
+    if use_cache:
+        print "Using local cache. Use 'reload' argument to fetch new rides."
 
-    rides = get_rides(members)
+    club_name, members = load_club_members(CLUB_ID, use_cache)
+
+    print "Rides for club %s" % club_name
+
+    rides = get_rides(members, use_cache)
     users = sorted(members.keys())
 
     weeks = set(map(lambda x: x.week_id, itertools.chain(*rides.values())))
@@ -178,15 +198,22 @@ def generate_report():
               " | ".join(map(lambda u: stretch_r(fn(u, rides), 10), users))
 
     print " "*22 + "-+-".join(["-"*10]*len(members))
+    print
+    print stretch('', 22) +\
+          " | ".join(map(lambda u: stretch_r(first_name(u), 10), users))
+    print " "*22 + "-+-".join(["-"*10]*len(members))
 
     for week_id in sorted(weeks)[-5:]:
-        week_distance_fn = lambda user, rides: km(sum(map(lambda r: r.distance,  filter(lambda r: r.week_id == week_id, rides[user]))))
+        week_distance_fn = lambda user, rides: sum(map(lambda r: r.distance,  filter(lambda r: r.week_id == week_id, rides[user])))
+        dist = map(lambda u: week_distance_fn(u, rides), users)
+        mark_max = lambda s,l: "*" if s == max(l) else ""
         print stretch(week_id, 22) +\
-              " | ".join(map(lambda u: stretch_r(week_distance_fn(u, rides), 10), users))
+              " | ".join(map(lambda d: stretch_r(mark_max(d, dist) + km(d), 10), dist))
 
-        elevation_fn = lambda user, rides: m(sum(map(lambda r: r.elevation_gain,  filter(lambda r: r.week_id == week_id, rides[user]))))
+        elevation_fn = lambda user, rides: sum(map(lambda r: r.elevation_gain,  filter(lambda r: r.week_id == week_id, rides[user])))
+        elev = map(lambda u: elevation_fn(u, rides), users)
         print stretch(week_id, 22) +\
-              " | ".join(map(lambda u: stretch_r(elevation_fn(u, rides), 10), users))
+              " | ".join(map(lambda e: stretch_r(mark_max(e, elev) + m(e), 10), elev))
 
         print " "*22 + "-+-".join(["-"*10]*len(members))
 

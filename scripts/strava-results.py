@@ -29,8 +29,8 @@ def convert(name):
 
 
 parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
-stretch = lambda s,l: (str(s)[:l] + " "* (l-len(str(s))))
-stretch_r = lambda s,l: (" "* (l-len(str(s)))+ str(s)[:l])
+stretch = lambda s,l: (str(s)[:l] + " "* (l-len(str(s).decode("utf-8"))))
+stretch_r = lambda s,l: (" "* (l-len(str(s).decode("utf-8")))+ str(s)[:l])
 km = lambda n: round(n/1000.,1)
 m = lambda n: n
 first_name = lambda s: s.split()[0]

@@ -1,1 +1,0 @@
-http://xmlweather.vedur.is/?op_w=xml&type=obs&lang=is&view=xml&ids=1477

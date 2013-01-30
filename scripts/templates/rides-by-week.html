@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block body %}
+    <h1>Biwinning</h1>
+    <blockquote>
+        <p>"I'm not bipolar, I'm biwinning"</p>
+        <small> Charlie Sheen</small>
+    </blockquote>
+
+    {% for week,week_results in results %}
+
+    <h2>{{ week }}</h2>
+
+    <table class="table">
+        <thead>
+            {% for user in users %}
+                <th>{{ user }}</th>
+            {% endfor %}
+        </thead>
+        <tr>
+            {% for name,((dist,is_max_dist),(elev,is_max_elev)) in week_results %}
+                {% if is_max_dist %}
+                <td class="text-success">
+                    <strong>{{ dist }} km</strong>
+                </td>
+                {% else %}
+                <td>
+                    {{ dist }} km
+                </td>
+                {% endif %}
+           {% endfor %}
+        </tr>
+        <tr>
+        {% for name,((dist,is_max_dist),(elev,is_max_elev)) in week_results %}
+                {% if is_max_elev %}
+                <td class="text-success">
+                    <strong>{{ elev }} m</strong>
+                </td>
+                {% else %}
+                <td>
+                    {{ elev }} m
+                </td>
+                {% endif %}
+        {% endfor %}
+            </tr>
+    </table>
+    {% endfor %}
+
+{% endblock %}

@@ -37,7 +37,7 @@ def weeks(update=False):
 
     results = get_users_week_summary(reversed(sorted(weeks)[-5:]), rides, users)
 
-    return render_template('weeks.html', results=list(results),users=map(print_safe, users))
+    return render_template('rides-by-week.html', results=list(results),users=map(print_safe, users))
 
 @app.route('/update')
 def update():

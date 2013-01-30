@@ -47,11 +47,11 @@
             {% for name,((dist,_),(elev,is_max)) in week_results %}
                 {% if is_max %}
                 <td class="text-success">
-                    <strong>{{ dist }} km</strong>
+                    <strong>{{ elev }} m</strong>
                 </td>
                 {% else %}
                 <td>
-                    {{ dist }} km
+                    {{ elev }} m
                 </td>
                 {% endif %}
             {% endfor %}

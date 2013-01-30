@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, url_for
 import itertools
+import sys
 import strava
 
 app = Flask("biwinning")
@@ -50,4 +51,5 @@ def do_update():
     return redirect(url_for('weeks'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    debug = 'debug' in sys.argv
+    app.run(debug=debug)

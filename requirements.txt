@@ -1,0 +1,12 @@
+DateUtils==0.6.5
+Flask==0.9
+Jinja2==2.6
+Werkzeug==0.8.3
+argparse==1.2.1
+distribute==0.6.24
+ipython==0.13.1
+python-dateutil==2.1
+pytz==2012j
+simplejson==3.0.7
+six==1.2.0
+wsgiref==0.1.2

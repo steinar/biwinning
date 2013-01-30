@@ -1,11 +1,10 @@
 import urllib2
-import itertools
 import simplejson
 import datetime
 import re
 import pickle
+import time
 import os
-import sys
 from dateutil.relativedelta import relativedelta
 from collections import deque
 from threading import Thread
@@ -27,6 +26,16 @@ def convert(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+
+def print_timing(func):
+    def wrapper(*arg):
+        t1 = time.time()
+        res = func(*arg)
+        t2 = time.time()
+        print '%s took %0.3f ms' % (func.func_name, (t2 - t1) * 1000.0)
+        return res
+
+    return wrapper
 
 ###
 # Disk-cache methods
@@ -207,7 +216,8 @@ def get_rides(user_map, use_cache=True):
     return rides
 
 def get_rides_from_cache(user_map):
-    return dict((user, cache_get(UserRides, id)) for (user,id) in [(k, user_map[k]) for k in sorted(user_map)])
+    return dict((user, cache_get(UserRides, id)) for (user, id) in [(k, user_map[k]) for k in sorted(user_map)])
+
 
 def get_rides_threaded(user_map, use_cache=True):
     rides = {}
@@ -217,7 +227,8 @@ def get_rides_threaded(user_map, use_cache=True):
     for user, id in [(k, user_map[k]) for k in sorted(user_map)]:
         print "Loading rides for %s" % (first_name(user), )
         rides[user] = UserRides()
-        threads.append(Thread(target=lambda q, i, c: q.extend(get_rides_for_user(i, c)), args=(rides[user], id, use_cache)))
+        threads.append(
+            Thread(target=lambda q, i, c: q.extend(get_rides_for_user(i, c)), args=(rides[user], id, use_cache)))
 
     # Start all
     [t.start() for t in threads]

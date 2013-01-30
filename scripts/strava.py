@@ -11,26 +11,14 @@ from collections import deque
 from threading import Thread
 
 
-CLUB_ID = 7459
 
+###
+# Utils
+###
 
-results = (
-    ('All time (rides)', lambda user, rides: len(rides[user])),
-    ('This year (km)',
-     lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_this_year, rides[user]))))),
-    ('Last month (km)',
-     lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_last_month, rides[user]))))),
-    ('Last week (km)',
-     lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_last_week, rides[user]))))),
-    ('This month (km)',
-     lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_this_month, rides[user]))))),
-    ('This week (km)',
-     lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_this_week, rides[user]))))),
-    ('Last 28 days (km)',
-     lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_last_28_days, rides[user]))))),
-    ('Last 7 days (km)',
-     lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_last_7_days, rides[user]))))),
-    )
+parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
+
+first_name = lambda s: s.split()[0]
 
 
 def convert(name):
@@ -38,18 +26,6 @@ def convert(name):
     """
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
-
-
-###
-# Presentation utils
-###
-
-parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
-stretch = lambda s, l: (str(s)[:l] + " " * (l - len(str(s).decode("utf-8"))))
-stretch_r = lambda s, l: (" " * (l - len(str(s).decode("utf-8"))) + str(s)[:l])
-km = lambda n: "%s km" % round(n / 1000., 1)
-m = lambda n: "%s m" % round(n, 1)
-first_name = lambda s: s.split()[0]
 
 
 ###
@@ -230,6 +206,8 @@ def get_rides(user_map, use_cache=True):
 
     return rides
 
+def get_rides_from_cache(user_map):
+    return dict((user, cache_get(UserRides, id)) for (user,id) in [(k, user_map[k]) for k in sorted(user_map)])
 
 def get_rides_threaded(user_map, use_cache=True):
     rides = {}
@@ -248,60 +226,4 @@ def get_rides_threaded(user_map, use_cache=True):
     [t.join() for t in threads]
 
     return rides
-
-
-###
-# Console view
-###
-
-def generate_report(use_cache=True, threaded=False):
-    if use_cache:
-        print "Using local cache. Use 'reload' argument to fetch new rides."
-
-    club_name, members = load_club_members(CLUB_ID, use_cache)
-
-    print "Rides for club %s" % club_name
-
-    rides = get_rides_threaded(members, use_cache) if threaded else get_rides(members, use_cache)
-    users = sorted(members.keys())
-
-    weeks = set(map(lambda x: x.week_id, itertools.chain(*rides.values())))
-
-    print stretch('', 22) +\
-          " | ".join(map(lambda u: stretch_r(first_name(u), 10), users))
-
-    print " " * 22 + "-+-".join(["-" * 10] * len(members))
-
-    for name, fn in results:
-        print stretch(name, 22) +\
-              " | ".join(map(lambda u: stretch_r(fn(u, rides), 10), users))
-
-    print " " * 22 + "-+-".join(["-" * 10] * len(members))
-    print
-    print stretch('', 22) +\
-          " | ".join(map(lambda u: stretch_r(first_name(u), 10), users))
-    print " " * 22 + "-+-".join(["-" * 10] * len(members))
-
-    for week_id in sorted(weeks)[-5:]:
-        week_distance_fn = lambda user, rides: sum(
-            map(lambda r: r.distance, filter(lambda r: r.week_id == week_id, rides[user])))
-        dist = map(lambda u: week_distance_fn(u, rides), users)
-        mark_max = lambda s, l: "*" if s == max(l) else ""
-        print stretch("Week: %s    dist." % week_id, 22) +\
-              " | ".join(map(lambda d: stretch_r(mark_max(d, dist) + km(d), 10), dist))
-
-        elevation_fn = lambda user, rides: sum(
-            map(lambda r: r.elevation_gain, filter(lambda r: r.week_id == week_id, rides[user])))
-        elev = map(lambda u: elevation_fn(u, rides), users)
-        print stretch_r("elev.", 22) +\
-              " | ".join(map(lambda e: stretch_r(mark_max(e, elev) + m(e), 10), elev))
-
-        print " " * 22 + "-+-".join(["-" * 10] * len(members))
-
-
-if __name__ == '__main__':
-    print "Available arguments: reload, threaded"
-    use_cache = 'reload' not in sys.argv
-    threaded = 'threaded' in sys.argv
-    generate_report(use_cache, threaded)
 

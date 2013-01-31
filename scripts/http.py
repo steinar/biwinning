@@ -52,4 +52,5 @@ def do_update():
 
 if __name__ == '__main__':
     debug = 'debug' in sys.argv
-    app.run(debug=debug)
+    host = len(sys.argv) > 1 and sys.argv[1] or None
+    app.run(debug=debug,host=host)

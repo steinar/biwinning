@@ -14,6 +14,7 @@ from threading import Thread
 ###
 # Utils
 ###
+from . import config
 
 parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
 
@@ -45,7 +46,7 @@ def cache_store(obj, id=None):
     if not os.path.exists('./data/'):
         os.makedirs('./data/')
     key = "%s-%s" % (obj.__class__.__name__, id or obj.id)
-    output = open('data/%s.pkl' % key, 'wb')
+    output = open(os.path.join(config.BASE_PATH, 'data', '%s.pkl' % key), 'wb')
     pickle.dump(obj, output)
     output.close()
     return obj
@@ -53,7 +54,7 @@ def cache_store(obj, id=None):
 
 def cache_get(cls, id):
     key = "%s-%s" % (cls.__name__, id)
-    filename = 'data/%s.pkl' % key
+    filename = os.path.join(config.BASE_PATH, 'data', '%s.pkl' % key)
     if os.path.exists(filename):
         input = open(filename, 'rb')
         return pickle.load(input)
@@ -200,7 +201,7 @@ def get_rides_for_user(id, use_cache):
     startId = max([0] + map(lambda x: x.id, cache_get(UserRides, id) or [])) if use_cache else 0
     rides_list = load_rides(id, 1 if startId else 0, startId)
 
-    rides = cache_get(UserRides, id) if use_cache else UserRides()
+    rides = use_cache and cache_get(UserRides, id) or UserRides()
     rides.extendleft(map(lambda item: get_ride(item['id']), rides_list))
 
     return cache_store(rides, id)

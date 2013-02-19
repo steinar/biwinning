@@ -1,10 +1,10 @@
 from flask import Flask, render_template, redirect, url_for
 import itertools
 import sys
-import strava
+from biwinning.config import app, CLUB_ID
+from biwinning.models import *
+from biwinning import strava
 
-app = Flask("biwinning")
-CLUB_ID = 7459
 
 print_safe = lambda x: x.decode('utf8', 'ignore')
 
@@ -34,7 +34,7 @@ def weeks(update=False):
     club_name, members = strava.load_club_members(CLUB_ID)
     rides = strava.get_rides_from_cache(members)
     users = sorted(members.keys())
-    weeks = set(map(lambda x: x.week_id, itertools.chain(*rides.values())))
+    weeks = set(map(lambda x: x.week_id, itertools.chain(*[x for x in rides.values() if x])))
 
     results = get_users_week_summary(reversed(sorted(weeks)[-5:]), rides, users)
 

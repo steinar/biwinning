@@ -9,12 +9,11 @@ from dateutil.relativedelta import relativedelta
 from collections import deque
 from threading import Thread
 
-
+DATA_DIR = os.path.join(os.getcwd(), 'data')
 
 ###
 # Utils
 ###
-from . import config
 
 parse_date = lambda d: datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%SZ")
 
@@ -43,10 +42,10 @@ def print_timing(func):
 ###
 
 def cache_store(obj, id=None):
-    if not os.path.exists('./data/'):
-        os.makedirs('./data/')
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
     key = "%s-%s" % (obj.__class__.__name__, id or obj.id)
-    output = open(os.path.join(config.BASE_PATH, 'data', '%s.pkl' % key), 'wb')
+    output = open(os.path.join(DATA_DIR, '%s.pkl' % key), 'wb')
     pickle.dump(obj, output)
     output.close()
     return obj
@@ -54,10 +53,13 @@ def cache_store(obj, id=None):
 
 def cache_get(cls, id):
     key = "%s-%s" % (cls.__name__, id)
-    filename = os.path.join(config.BASE_PATH, 'data', '%s.pkl' % key)
+    filename = os.path.join(DATA_DIR, '%s.pkl' % key)
     if os.path.exists(filename):
         input = open(filename, 'rb')
-        return pickle.load(input)
+        try:
+            return pickle.load(input)
+        except:
+            raise RuntimeError('Data corrupt (or something). Delete the data dir and fetch everything again.')
     return None
 
 

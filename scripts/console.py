@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 import itertools
 import datetime
 import re
 import sys
-import strava
+from biwinning import strava
 
 CLUB_ID = 7459
 

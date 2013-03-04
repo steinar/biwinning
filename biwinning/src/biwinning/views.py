@@ -43,6 +43,5 @@ def update():
 
 @app.route('/do-update')
 def do_update():
-    club_name, members = strava.load_club_members(app.config['CLUB_ID'])
-    strava.get_rides_threaded(members)
+    strava.get_rides(app.config['CLUB_ID'], True)
     return redirect(url_for('weeks'))

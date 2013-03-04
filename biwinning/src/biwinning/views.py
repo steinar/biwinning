@@ -29,7 +29,7 @@ def get_users_week_summary(weeks,rides,users):
 @app.route('/')
 def weeks(update=False):
     club_name, members = strava.load_club_members(app.config['CLUB_ID'])
-    rides = strava.get_rides_from_cache(members)
+    rides = strava.get_rides(app.config['CLUB_ID'], False)
     users = sorted(members.keys())
     weeks = set(map(lambda x: x.week_id, itertools.chain(*[x for x in rides.values() if x])))
 

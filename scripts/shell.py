@@ -5,7 +5,7 @@ from werkzeug import script
 from biwinning.config import app, CLUB_ID
 
 def make_shell():
-    modules = (biwinning.models, biwinning.strava)
+    modules = (biwinning.strava, biwinning.models)
     context = [[(x, getattr(module, x)) for x in dir(module) if not x.startswith('_')] for module in modules]
     return dict(app=app, **dict(itertools.chain(*context)))
 

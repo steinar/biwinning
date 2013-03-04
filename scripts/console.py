@@ -12,7 +12,7 @@ CLUB_ID = 7459
 ###
 
 results = (
-    ('All time (rides)', lambda user, rides: len(rides[user])),
+    ('All time (rides)', lambda user, rides: rides[user].count()),
     ('This year (km)',
      lambda user, rides: km(sum(map(lambda r: r.distance, filter(lambda r: r.is_this_year, rides[user]))))),
     ('Last month (km)',
@@ -47,15 +47,15 @@ m = lambda n: "%s m" % round(n, 1)
 # Console view
 ###
 
-def generate_report(use_cache=True, threaded=False):
-    if use_cache:
+def generate_report(refresh=False):
+    if not refresh:
         print "Using local cache. Use 'reload' argument to fetch new rides."
 
-    club_name, members = strava.load_club_members(CLUB_ID, use_cache)
+    club_name, members = strava.load_club_members(CLUB_ID, refresh)
 
     print "Rides for club %s" % club_name
 
-    rides = strava.get_rides_threaded(members, use_cache) if threaded else strava.get_rides(members, use_cache)
+    rides = strava.get_rides(CLUB_ID, refresh)
     users = sorted(members.keys())
 
     weeks = set(map(lambda x: x.week_id, itertools.chain(*rides.values())))
@@ -92,8 +92,7 @@ def generate_report(use_cache=True, threaded=False):
 
 
 if __name__ == '__main__':
-    print "Available arguments: reload, threaded"
-    use_cache = 'reload' not in sys.argv
-    threaded = 'threaded' in sys.argv
-    generate_report(use_cache, threaded)
+    print "Available arguments: refresh"
+    refresh = 'refresh' in sys.argv
+    generate_report(refresh)
 

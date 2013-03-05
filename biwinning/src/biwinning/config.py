@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_peewee.db import Database
 
 
 DATABASE = {
@@ -21,3 +22,7 @@ DATABASE = {
 
 app = Flask("biwinning")
 app.config.from_object(__name__)
+
+STRAVA_AUTH = {}
+
+db = Database(app)

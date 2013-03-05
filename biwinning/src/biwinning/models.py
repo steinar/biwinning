@@ -1,6 +1,6 @@
 import datetime
 import simplejson
-from biwinning.data import db
+from biwinning.config import db
 from dateutil.relativedelta import relativedelta
 from peewee import Model, TextField, IntegerField, CharField, DateTimeField, BooleanField, TimeField, FloatField, ForeignKeyField, fn
 from biwinning.utils import convert, parse_date
@@ -30,20 +30,26 @@ class UtilsMixIn:
         t = key_translation or {}
         return all([getattr(self, t.get(k, k)) == v for (k,v) in value_dict.items()])
 
-    def values_from_dict(self, value_dict, key_translation=None):
+
+    def values_from_dict(self, value_dict, key_translation=None, value_fn=None):
         """
         Set attributes values from input dictionary.
         Optional dict key => attribute name translation dictionary may be provided.
         """
-        t = key_translation or {}
-        [setattr(self, t.get(k, k), v) for (k,v) in value_dict.items()]
+        key_translation = key_translation or {}
+        value_fn = value_fn or {}
 
-        class Meta:
-            database = db
+        [setattr(self, key_translation.get(k, k), v) for (k,v) in value_dict.items()]
+
+        translated = ((key_translation.get(k, convert(k)), value_fn.get(k, lambda x: x)(v)) for k, v in value_dict.items())
+        [setattr(self, k, v) for (k,v,) in translated]
+
+        return self
+
 
 @model
 class Club(UtilsMixIn, db.Model):
-    strava_id = IntegerField(unique=True)
+    strava_id = IntegerField(unique=True, index=True)
     name = TextField(default='')
 
     @property
@@ -54,7 +60,7 @@ class Club(UtilsMixIn, db.Model):
 
 @model
 class Athlete(UtilsMixIn, db.Model):
-    strava_id = IntegerField(unique=True)
+    strava_id = IntegerField(unique=True, index=True)
     name = CharField(null=True)
     username = CharField(null=True)
 
@@ -75,15 +81,16 @@ class ClubAthlete(UtilsMixIn, db.Model):
     """
     Club <-> Athlete many to many.
     """
-    club = ForeignKeyField(Club)
-    athlete = ForeignKeyField(Athlete)
+    club = ForeignKeyField(Club, index=True)
+    athlete = ForeignKeyField(Athlete, index=True)
 
 
 @model
 class Ride(UtilsMixIn, db.Model):
+    strava_id = IntegerField(default=0, unique=True, index=True)
+    name = CharField(default='')
     description = TextField(null=True)
     start_date = DateTimeField(null=True)
-    name = CharField(default='')
     distance = FloatField(default=0)
     athlete = ForeignKeyField(Athlete, related_name='rides')
     maximum_speed = FloatField(default=0)
@@ -95,7 +102,6 @@ class Ride(UtilsMixIn, db.Model):
     average_speed = FloatField(default=0)
     start_date_local = DateTimeField(null=True)
     average_watts = FloatField(default=0, null=True)
-    strava_id = IntegerField(default=0, unique=True)
     time_zone_offset = IntegerField(default=0)
     location = CharField(default='')
     json = TextField(default='')
@@ -115,12 +121,8 @@ class Ride(UtilsMixIn, db.Model):
 
     athlete_dict = property(get_athlete, set_athlete)
 
-    @classmethod
-    def from_dict(cls, d):
-        instance = Ride()
-        instance.json = simplejson.dumps(d)
-
-        print d
+    def populate_from_dict(self, value_dict):
+        self.json = simplejson.dumps(value_dict)
 
         key_translation = {
             'id': 'strava_id',
@@ -132,13 +134,8 @@ class Ride(UtilsMixIn, db.Model):
             'startDateLocal': parse_date
         }
 
-        translated = ((key_translation.get(k, convert(k)), value_fn.get(k, lambda x: x)(v)) for k, v in d.items())
-        for k, v in translated:
-            if k not in dir(instance):
-                print "Ride does not have attribute %s, skipping." % k
-                continue
-            setattr(instance, k, v)
-        return instance
+        self.values_from_dict(value_dict, key_translation, value_fn)
+        return self
 
     @property
     def is_this_week(self):

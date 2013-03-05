@@ -59,7 +59,7 @@ def get_ride(id):
     try:
         return Ride.get(strava_id=id)
     except:
-        ride = Ride.from_dict(load_json("http://www.strava.com/api/v1/rides/%s" % id)['ride'])
+        ride = Ride().populate_from_dict(load_json("http://www.strava.com/api/v1/rides/%s" % id)['ride'])
         ride.save()
         return ride
 

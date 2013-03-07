@@ -23,3 +23,7 @@ def print_timing(func):
         return res
 
     return wrapper
+
+def monday(offset=0):
+    today = datetime.date.today()
+    return today + datetime.timedelta(days=-today.weekday(), weeks=offset)

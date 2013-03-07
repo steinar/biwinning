@@ -53,7 +53,7 @@ def get_ride(ride):
 
 
 @strava_id
-def fetch_club_members(club, data=None):
+def fetch_athletes(club, data=None):
     """
     Fetch and store club members from strava.
     """
@@ -84,7 +84,7 @@ def fetch_club(club):
     instance = Club.get_or_create(strava_id=club).values_from_dict(data['club'], {'id': 'strava_id'})
     instance.save()
 
-    fetch_club_members(club, data=data)
+    fetch_athletes(club, data=data)
 
     return instance
 
@@ -101,7 +101,7 @@ def get_club(club):
 
 
 @strava_id
-def get_club_members(club):
+def get_athletes(club):
     """
     Get club members from database or strava.
     """
@@ -165,6 +165,12 @@ def get_rides(athlete):
         return get_athlete(athlete).rides
     except:
         return fetch_rides(athlete)
+
+@strava_id
+def get_club_rides(club):
+    for athlete in get_athletes(club):
+        for ride in get_ride(athlete):
+            yield ride
 
 
 #def authenticate():

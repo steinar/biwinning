@@ -2,43 +2,22 @@
 {% block body %}
     <h1 style="display:none">Biwinning</h1>
 
-    {% for week,week_results in results %}
-
-    <h2>{{ week }}</h2>
+    {% for (week_id, results) in weeks %}
+    <h2>{{ week_id }}</h2>
 
     <table class="table">
         <thead>
-            {% for user in users %}
-                <th>{{ user }}</th>
+            {% for athlete in club.athletes %}
+                <th>{{ athlete.name }}</th>
             {% endfor %}
         </thead>
         <tr>
-            {% for name,((dist,is_max_dist),(elev,is_max_elev)) in week_results %}
-                {% if is_max_dist %}
-                <td class="text-success">
-                    <strong>{{ dist }} km</strong>
-                </td>
-                {% else %}
+            {% for athlete in club.athletes %}
                 <td>
-                    {{ dist }} km
+                    {{ results[athlete.id] }}
                 </td>
-                {% endif %}
            {% endfor %}
         </tr>
-        <tr>
-        {% for name,((dist,is_max_dist),(elev,is_max_elev)) in week_results %}
-                {% if is_max_elev %}
-                <td class="text-success">
-                    <strong>{{ elev }} m</strong>
-                </td>
-                {% else %}
-                <td>
-                    {{ elev }} m
-                </td>
-                {% endif %}
-        {% endfor %}
-            </tr>
     </table>
     {% endfor %}
-
 {% endblock %}

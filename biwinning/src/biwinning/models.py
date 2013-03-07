@@ -47,6 +47,8 @@ class Model(db.Model, SignalModel):
 
         return self
 
+    def __eq__(self, other):
+        return self.id == other.id
 
 @model
 class Club(Model):
@@ -232,9 +234,11 @@ class Quantity(Model):
     def get_max_strava_id(self, athlete):
         return Quantity.select().where(Quantity.athlete==athlete).aggregate(fn.Max(Quantity.max_strava_id))
 
+    def __str__(self):
+        return str(self.value)
 
     def __repr__(self):
-        return "<Quantity %s: %s, %s>" % (self.id, self.class_name, self.key)
+        return "<Quantity %s: %s, %s, %s>" % (self.id, self.class_name, self.key, self.value)
 
 
 for cls in MODELS:

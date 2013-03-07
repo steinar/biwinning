@@ -89,7 +89,7 @@ class AthleteDistanceByWeek(Quantifier):
             yield ride.athlete, ride.week, ride.max_strava_id, ride.sum, ride.count
 
     def get(self, athlete, week_or_date):
-        week = isinstance(week_or_date, datetime.date) and week_or_date.strftime("%Y-%W")
+        week = isinstance(week_or_date, datetime.date) and week_or_date.strftime("%Y-%W") or week_or_date
         return Quantity.get_or_create(class_name=self.name, athlete=athlete, key=self.key(week))
 
     def all(self):

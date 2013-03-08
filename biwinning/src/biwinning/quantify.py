@@ -1,7 +1,7 @@
 import datetime
 from peewee import fn
 from biwinning.data import get_rides, get_athletes
-from biwinning.models import Ride, Quantity
+from biwinning.models import Ride, Quantity, Athlete, ClubAthlete
 from biwinning.utils import monday
 
 __author__ = 'steinar'
@@ -65,8 +65,8 @@ class AthleteDistanceByWeek(Quantifier):
     def rebuild(self):
         self.update(None)
 
-    def key(self, week):
-        return week
+    def key(self, week_or_date):
+        return isinstance(week_or_date, datetime.date) and week_or_date.strftime("%Y-%W") or week_or_date
 
     def fetch_data(self, athlete=None, max_strava_id=0):
         query = (Ride
@@ -75,6 +75,7 @@ class AthleteDistanceByWeek(Quantifier):
             Ride.week,
             fn.Max(Ride.strava_id).alias('max_strava_id'),
             fn.Sum(Ride.distance).alias('sum'),
+            fn.Sum(Ride.elevation_gain).alias('elevation'),
             fn.Count().alias('count')))
 
         if max_strava_id:
@@ -86,17 +87,32 @@ class AthleteDistanceByWeek(Quantifier):
         query = query.group_by(Ride.athlete, Ride.week)
 
         for ride in query:
-            yield ride.athlete, ride.week, ride.max_strava_id, ride.sum, ride.count
+            yield ride.athlete, ride.week, ride.max_strava_id, ride.sum, ride.elevation, ride.count
 
     def get(self, athlete, week_or_date):
-        week = isinstance(week_or_date, datetime.date) and week_or_date.strftime("%Y-%W") or week_or_date
-        return Quantity.get_or_create(class_name=self.name, athlete=athlete, key=self.key(week))
+        return Quantity.get_or_create(class_name=self.name, athlete=athlete, key=self.key(week_or_date))
 
     def all(self):
         return Quantity.select().where(Quantity.class_name == self.name)
 
     def update(self, athlete):
         max_strava_id = athlete and Quantity.get_max_strava_id(athlete) or 0
-        for athlete, week, max_strava_id, sum, count in self.fetch_data():
-            Quantity.add_or_update(self.name, athlete, self.key(week), max_strava_id, sum, {'count': count})
+        for athlete, week, max_strava_id, sum, elevation, count in self.fetch_data():
+            Quantity.add_or_update(self.name,
+                athlete,
+                self.key(week),
+                max_strava_id,
+                sum,
+                {'count': count, 'elevation': elevation}
+            )
+
+    def scoreboard(self, week_or_date):
+        return (Quantity
+                .select()
+                .where(Quantity.key == self.key(week_or_date), Quantity.value > 0)
+                .join(Athlete)
+                .join(ClubAthlete)
+                .where(ClubAthlete.club == self.club).order_by(Quantity.value.desc())
+            )
+
 

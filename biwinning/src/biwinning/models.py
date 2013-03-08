@@ -61,7 +61,7 @@ class Club(Model):
 #        return (ca.athlete for ca in self.clubathlete_set)
 
     def __repr__(self):
-        return "<Club %s: %s>" % (self.id, self.username)
+        return "<Club %s: %s>" % (self.id, self.name)
 
 
 
@@ -79,6 +79,10 @@ class Athlete(Model):
     @property
     def max_ride_id(self):
         return Ride.select().where(Ride.athlete==self).aggregate(fn.Max(Ride.strava_id))
+
+    @property
+    def url(self):
+        return "http://app.strava.com/athletes/%s" % self.strava_id
 
     def __repr__(self):
         return "<Athlete %s: %s>" % (self.id, self.username)

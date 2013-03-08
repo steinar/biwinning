@@ -167,6 +167,12 @@ def get_rides(athlete):
         return fetch_rides(athlete)
 
 @strava_id
+def fetch_club_rides(club):
+    for athlete in get_athletes(club):
+        for ride in fetch_ride(athlete):
+            yield ride
+
+@strava_id
 def get_club_rides(club):
     for athlete in get_athletes(club):
         for ride in get_ride(athlete):

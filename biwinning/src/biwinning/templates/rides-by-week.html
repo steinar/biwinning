@@ -1,23 +1,32 @@
 {% extends 'base.html' %}
 {% block body %}
     <h1 style="display:none">Biwinning</h1>
+    <h2>Weekly scoreboards for {{ club.name }}</h2>
 
-    {% for (week_id, results) in weeks %}
-    <h2>{{ week_id }}</h2>
-
-    <table class="table">
-        <thead>
-            {% for athlete in club.athletes %}
-                <th>{{ athlete.name }}</th>
-            {% endfor %}
-        </thead>
+    {% for (week_id, a, b) in weeks %}
+    <h3>Week {{ week_id }}</h3>
+    <p><i class="icon-calendar"></i>{{ a|date }} - {{ b|date }}</p>
+    <table class="table table-hover">
+    <thead>
+        <th></th>
+        <th>Athlete</th>
+        <th class="right">Distance</th>
+        <th class="right">Elevation gain</th>
+        <th class="right">Rides</th>
+    </thead>
+    <tbody>
+    {% for quantity in scoreboards[week_id] %}
         <tr>
-            {% for athlete in club.athletes %}
-                <td>
-                    {{ results[athlete.id] }}
-                </td>
-           {% endfor %}
+            <td>#{{loop.index}}</td>
+            <td><a href="{{quantity.athlete.url}}">{{ quantity.athlete.name }}</a></td>
+            <td class="right">{{ quantity.value|kilo }}</td>
+            <td class="right">{{ quantity.data.elevation|meters }}</td>
+            <td class="right">{{ quantity.data.count }} <small>rides</small></td>
         </tr>
+    {% else %}
+        <tr><td colspan="5" class="center"><em>No rides this week</em></td></tr>
+    {% endfor %}
+    </tbody>
     </table>
     {% endfor %}
 {% endblock %}

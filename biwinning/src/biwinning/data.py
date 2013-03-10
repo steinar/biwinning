@@ -117,13 +117,13 @@ def fetch_athlete_ride_ids(athlete, offset=0, startId=0):
     """
     rides = load_json("http://app.strava.com/api/v1/rides?athleteId=%s&offset=%s&startId=%s" % \
                       (athlete, offset, startId))['rides']
-    for ride in rides:
-        if ride['id'] is not startId:
-            yield ride['id']
+    for ride_id in (r['id'] for r in rides):
+        if not ride_id == startId:
+            yield ride_id
     if len(rides) >= 50:
-        for ride in fetch_athlete_ride_ids(athlete, offset + 50, startId=startId):
-            if ride['id'] is not startId:
-                yield ride['id']
+        for ride_id in fetch_athlete_ride_ids(athlete, offset + 50, startId=startId):
+            if ride_id is not startId:
+                yield ride_id
 
 
 @strava_id
@@ -146,13 +146,13 @@ def get_athlete(athlete):
 
 
 @strava_id
-def fetch_rides(athlete):
+def fetch_new_rides(athlete):
     """
     Fetch and store athlete's rides from strava.
     Returns a generator.
     """
     instance = get_athlete(athlete)
-    startId = str(instance.max_ride_id)
+    startId = instance.max_ride_id
     return (get_ride(id) for id in fetch_athlete_ride_ids(athlete, 0, startId))
 
 
@@ -164,20 +164,41 @@ def get_rides(athlete):
     try:
         return get_athlete(athlete).rides
     except:
-        return fetch_rides(athlete)
+        return fetch_new_rides(athlete)
 
 @strava_id
-def fetch_club_rides(club):
+def fetch_club_new_rides(club):
     for athlete in get_athletes(club):
-        for ride in fetch_ride(athlete):
+        for ride in fetch_new_rides(athlete):
             yield ride
+
+@strava_id
+def fetch_club_new_rides_fair(club):
+    """
+    One ride per athlete in each iteration
+    """
+    generators = [fetch_new_rides(athlete) for athlete in get_athletes(club)]
+    while len(generators) > 0:
+        for gen in generators:
+            try:
+                yield next(gen)
+            except StopIteration:
+                generators.remove(gen)
 
 @strava_id
 def get_club_rides(club):
     for athlete in get_athletes(club):
-        for ride in get_ride(athlete):
+        for ride in get_rides(athlete):
             yield ride
 
+
+@strava_id
+def get_orphan_rides(club):
+    for athlete in get_athletes(club):
+        db_ids = set(r.strava_id for r in Ride.select(Ride.strava_id).where(Ride.athlete == athlete))
+        strava_ids = set(fetch_athlete_ride_ids(athlete))
+        for id in db_ids.difference(strava_ids):
+            yield Ride.get(Ride.strava_id == id)
 
 #def authenticate():
 #    data = {'email': 'hugi@steinar.is', 'password': 'azazo', 'agreed_to_terms': '1'}

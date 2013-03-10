@@ -12,6 +12,8 @@
         <th>Athlete</th>
         <th class="right">Distance</th>
         <th class="right">Elevation gain</th>
+        <th class="right">Average speed</th>
+        <th class="right">Moving time</th>
         <th class="right">Rides</th>
     </thead>
     <tbody>
@@ -20,11 +22,13 @@
             <td>#{{loop.index}}</td>
             <td><a href="{{quantity.athlete.url}}">{{ quantity.athlete.name }}</a></td>
             <td class="right">{{ quantity.value|kilo }}</td>
-            <td class="right">{{ quantity.data.elevation|meters }}</td>
+            <td class="right">{{ quantity.data.elevation_gain|meters }}</td>
+            <td class="right">{{ quantity.data.average_speed|ms2km }}</td>
+            <td class="right">{{ quantity.data.moving_time|minutes }}</td>
             <td class="right">{{ quantity.data.count }} <small>rides</small></td>
         </tr>
     {% else %}
-        <tr><td colspan="5" class="center"><em>No rides this week</em></td></tr>
+        <tr><td colspan="6" class="center"><em>No rides this week</em></td></tr>
     {% endfor %}
     </tbody>
     </table>

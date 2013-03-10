@@ -23,3 +23,13 @@ def kilo(n):
 @register
 def meters(n):
     return do_mark_safe("%s <small>m</small>" % round(n))
+
+@register
+def ms2km(n):
+    return do_mark_safe("%s <small>km/h</small>" % round(n*3.6))
+
+
+@register
+def minutes(n):
+    return str(datetime.timedelta(seconds=n))
+

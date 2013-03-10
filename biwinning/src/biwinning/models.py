@@ -64,7 +64,6 @@ class Club(Model):
         return "<Club %s: %s>" % (self.id, self.name)
 
 
-
 @model
 class Athlete(Model):
     strava_id = IntegerField(unique=True, index=True)
@@ -103,12 +102,13 @@ class ClubAthlete(Model):
 @model
 class Ride(Model):
     strava_id = IntegerField(default=0, unique=True, index=True)
+    athlete = ForeignKeyField(Athlete, related_name='rides', null=True)
+
     name = CharField(default='')
     description = TextField(null=True)
     start_date = DateTimeField(null=True)
     start_date_local = DateTimeField(null=True)
     distance = FloatField(default=0)
-    athlete = ForeignKeyField(Athlete, related_name='rides')
     maximum_speed = FloatField(default=0)
     moving_time = IntegerField(default=0)
     elapsed_time = IntegerField(default=0)
@@ -208,6 +208,15 @@ class Ride(Model):
 def ride_week(model_class, instance, created):
     instance.week = instance.start_date_local and instance.start_date_local.strftime("%Y-%W") or None
 
+
+class JsonField(TextField):
+    def db_value(self, value):
+        return value if value is None else self.coerce(simplejson.dumps(value))
+
+    def python_value(self, value):
+        return value if value is None else simplejson.loads(self.coerce(value))
+
+
 @model
 class Quantity(Model):
     class_name = CharField(index=True)
@@ -215,15 +224,8 @@ class Quantity(Model):
     key = CharField(index=True)
     max_strava_id = IntegerField(default=0, index=True)
     value = FloatField(default=0)
-    data_json = TextField(null=True)
-
-    def get_data(self):
-        return self.data_json and simplejson.loads(self.data_json) or {}
-
-    def set_data(self, d):
-        self.data_json = simplejson.dumps(d or {})
-
-    data = property(get_data, set_data)
+    data = JsonField(null=True)
+    strava_ids = JsonField(null=True)
 
     @classmethod
     def add_or_update(cls, class_name, athlete, key, max_strava_id, value, data):

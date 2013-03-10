@@ -1,5 +1,6 @@
 from . import config
 from . import data
+from . import utils
 from . import models
 from . import quantify
 from . import strava

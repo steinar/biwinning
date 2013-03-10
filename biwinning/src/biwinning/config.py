@@ -25,4 +25,6 @@ app.config.from_object(__name__)
 
 STRAVA_AUTH = {}
 
+QUANTIFIERS = []
+
 db = Database(app)

@@ -1,11 +1,10 @@
 import itertools
 import datetime
 from flask import render_template, redirect, url_for
-from biwinning import strava
 from biwinning.config import app
-from biwinning.data import fetch_club_rides
 from biwinning.models import Club
 from biwinning.quantify import AthleteDistanceByWeek
+from biwinning.tasks import update_club
 from biwinning.utils import get_week_id, monday
 
 print_safe = lambda x: x.decode('utf8', 'ignore')
@@ -35,6 +34,6 @@ def update():
 
 @app.route('/do-update')
 def do_update():
-#    club = Club.all()[0]
-#    list(fetch_club_rides(club.strava_id))
+    club = Club.all()[0]
+    update_club(club)
     return redirect(url_for('weeks'))

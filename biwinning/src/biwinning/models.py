@@ -60,6 +60,10 @@ class Club(Model):
         return Athlete.select().join(ClubAthlete).join(Club).where(Club.id == self.id)
 #        return (ca.athlete for ca in self.clubathlete_set)
 
+    @classmethod
+    def all_augmented(cls):
+        return cls.select(cls, fn.Count(ClubAthlete.id).alias('athlete_count')).join(ClubAthlete).group_by(ClubAthlete.club)
+
     def __repr__(self):
         return "<Club %s: %s>" % (self.id, self.name)
 

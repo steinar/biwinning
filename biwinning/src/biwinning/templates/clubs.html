@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block body %}
+<h1 style="display:none">Biwinning</h1>
+<h2>Clubs</h2>
+
+<div class="row">
+    <div class="span12">
+        <table class="table table-hover">
+            <thead>
+            <th>Name</th>
+            <th>Athletes</th>
+            </thead>
+            <tbody>
+            {% for club in clubs %}
+            <tr>
+                <td><a href="{{ url_for('weekly_scoreboard', club_id=club.strava_id) }}">{{club.name}}</a></td>
+                <td>{{ club.athlete_count }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

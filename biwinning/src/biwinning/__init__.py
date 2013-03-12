@@ -5,6 +5,7 @@ from . import models
 from . import quantify
 from . import strava
 from . import views
+from . import api
 from . import templatetags
 
 from config import app

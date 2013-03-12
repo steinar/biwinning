@@ -13,5 +13,10 @@ setup(
     include_package_data = True,
     zip_safe = False,
     setup_requires = ['setuptools_git'],
-    install_requires = ['setuptools'],
+    install_requires = ['setuptools',
+                        'Flask==0.9',
+                        'flask-peewee==0.6.3',
+                        'python-dateutil==2.1',
+                        'simplejson==3.0.7',
+    ],
 )

@@ -11,24 +11,36 @@ var more = function (e, context) {
 
             $(document).trigger('content', $content);
             $(document).trigger('content', $more);
+            $(document).trigger('content-loaded');
         });
         return false;
     });
 }
 
-var endlessScroll = function(buttonSelector) {
+var endlessScroll = function (buttonSelector) {
     var isHandlingScroll = false;
-    var handleScroll = function() {
-        if (!isHandlingScroll && $(window).scrollTop() > ($(document).height() - $(window).height() - 500)) {
+
+    var isNearBottom = function edge() {
+        return $(window).scrollTop() > ($(document).height() - $(window).height() - 500);
+    }
+
+    var requestContentIfNeeded = function requestContentIfNeeded() {
+        if (!isHandlingScroll && isNearBottom()) {
             isHandlingScroll = true;
             $(buttonSelector).click();
-            $(document).ajaxComplete(function () {
-                setTimeout(function() { isHandlingScroll = false; handleScroll(); }, 50);
-            });
         }
     };
-    $(window).scroll(handleScroll);
-    $(window).load(handleScroll);
+
+    var releaseLock = function releaseLock() {
+        setTimeout(function () {
+            isHandlingScroll = false;
+            requestContentIfNeeded();
+        }, 100);
+    };
+
+    $(window).scroll(requestContentIfNeeded);
+    $(window).load(requestContentIfNeeded);
+    $(document).bind('content-loaded', releaseLock);
 };
 
 $(function () {

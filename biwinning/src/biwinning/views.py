@@ -30,7 +30,7 @@ def weekly_scoreboard(club_id):
 
 @app.route('/<club_id>/weeks/<page>')
 def weekly_scoreboard_page(club_id, page):
-    weeks_per_page = 5
+    weeks_per_page = 1
     club = get_club(club_id)
     page = int(page)
     session['club_id'] = club_id

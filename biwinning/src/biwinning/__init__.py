@@ -3,7 +3,6 @@ from . import data
 from . import utils
 from . import models
 from . import quantify
-from . import strava
 from . import views
 from . import api
 from . import templatetags

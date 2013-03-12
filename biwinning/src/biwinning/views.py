@@ -25,7 +25,7 @@ def clubs():
 
 @app.route('/<club_id>/weeks')
 @app.route('/<club_id>/weeks/<first_week_id>')
-def weekly_scoreboard_page(club_id, first_week_id=None):
+def weekly_scoreboard(club_id, first_week_id=None):
     week_per_request = 3
     base_date = date(first_week_id or week_id(monday()))
     mon = lambda i: monday(i, base_date)

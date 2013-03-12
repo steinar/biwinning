@@ -24,9 +24,12 @@ def print_timing(func):
 
     return wrapper
 
-def monday(offset=0):
-    today = datetime.date.today()
-    return today + datetime.timedelta(days=-today.weekday(), weeks=offset)
+def monday(offset=0, relative_to=None):
+    base = relative_to or datetime.date.today()
+    return base + datetime.timedelta(days=-base.weekday(), weeks=offset)
 
-def get_week_id(date):
+def week_id(date):
     return date.strftime("%Y-%W")
+
+def date(week_id):
+    return datetime.datetime.strptime("%s-1" % week_id, "%Y-%W-%w").date()

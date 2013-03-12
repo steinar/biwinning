@@ -119,7 +119,10 @@ class AthleteDistanceByWeek(Quantifier):
             yield ride.athlete, ride.week, ride.max_strava_id, ride.distance, ride.elevation_gain, ride.moving_time, ride.count
 
     def get(self, athlete, week_or_date):
-        return Quantity.get_or_create(class_name=self.name, athlete=athlete, key=self.key(week_or_date))
+        try:
+            return Quantity.get(class_name=self.name, athlete=athlete, key=self.key(week_or_date))
+        except Quantity.DoesNotExist:
+            return Quantity(class_name=self.name, athlete=athlete, key=self.key(week_or_date), value=0)
 
     def all(self):
         return Quantity.select().where(Quantity.class_name == self.name)
@@ -153,16 +156,19 @@ class AthleteDistanceByWeek(Quantifier):
         q = self.get(ride.athlete, ride.start_date_local)
         q.value += ride.distance
 
-        d = lambda k: q.data.get(k, 0)
 
+        if not q.data:
+            q.data = {}
+
+        val = lambda k: q.data.get(k, 0)
         q.data.update({
-            'count': d('count') + 1,
-            'distance': d('distance') + ride.distance,
-            'elevation_gain': d('elevation_gain') + ride.elevation_gain,
-            'moving_time': d('moving_time') + ride.moving_time,
+            'count': val('count') + 1,
+            'distance': val('distance') + ride.distance,
+            'elevation_gain': val('elevation_gain') + ride.elevation_gain,
+            'moving_time': val('moving_time') + ride.moving_time,
         })
 
-        q.data['average_speed'] = d('distance')/d('moving_time')
+        q.data['average_speed'] = val('distance')/val('moving_time')
 
         q.save()
 

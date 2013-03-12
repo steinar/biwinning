@@ -2,18 +2,18 @@ import os
 from flask import Flask
 from flask_peewee.db import Database
 
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(os.getcwd(), 'data')
 
 DATABASE = {
-    'name': 'biwinning.db',
+    'name': os.path.join(BASE_PATH, 'biwinning.db'),
     'engine': 'peewee.SqliteDatabase',
+    'threadlocals': True
     }
 
 DEBUG = True
 SECRET_KEY = 'ssshhhh'
 CLUB_ID = 7459
-
-BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(os.getcwd(), 'data')
 
 DATABASE = {
     'name': 'biwinning.db',

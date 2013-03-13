@@ -2,7 +2,7 @@ import datetime
 import simplejson
 from biwinning.config import db
 from dateutil.relativedelta import relativedelta
-from peewee import TextField, IntegerField, CharField, DateTimeField, BooleanField, TimeField, FloatField, ForeignKeyField, fn
+from peewee import TextField, IntegerField, CharField, DateTimeField, BooleanField, TimeField, FloatField, ForeignKeyField, fn, JOIN_INNER, JOIN_FULL, JOIN_LEFT_OUTER
 from playhouse.signals import Model as SignalModel, pre_save, connect
 from biwinning.utils import convert, parse_date
 
@@ -62,7 +62,7 @@ class Club(Model):
 
     @classmethod
     def all_augmented(cls):
-        return cls.select(cls, fn.Count(ClubAthlete.id).alias('athlete_count')).join(ClubAthlete).group_by(ClubAthlete.club)
+        return cls.select(cls, fn.Count(ClubAthlete.id).alias('athlete_count')).join(ClubAthlete, JOIN_LEFT_OUTER).group_by(ClubAthlete.club)
 
     def __repr__(self):
         return "<Club %s: %s>" % (self.id, self.name)

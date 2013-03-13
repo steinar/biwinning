@@ -1,12 +1,6 @@
-from . import config
-from . import data
-from . import utils
-from . import models
-from . import quantify
-from . import views
-from . import api
-from . import templatetags
+__all__ = ['config', 'data', 'utils', 'models', 'quantify', 'views', 'api', 'templatetags']
 
-from config import app
-
-# Empty file
+from biwinning.config import *
+from biwinning.templatetags import *
+from biwinning.views import *
+from biwinning.api import *

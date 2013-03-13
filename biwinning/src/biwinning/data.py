@@ -48,7 +48,7 @@ def get_ride(ride):
     """
     try:
         return Ride.get(strava_id=ride)
-    except:
+    except Ride.DoesNotExist:
         return fetch_ride(ride)
 
 
@@ -96,7 +96,7 @@ def get_club(club):
     """
     try:
         return Club.get(strava_id=club)
-    except:
+    except Club.DoesNotExist:
         return fetch_club(club)
 
 
@@ -141,7 +141,7 @@ def get_athlete(athlete):
     """
     try:
         return Athlete.get(strava_id=athlete)
-    except:
+    except Athlete.DoesNotExist:
         return fetch_athlete(athlete)
 
 
@@ -161,10 +161,7 @@ def get_rides(athlete):
     """
     Get athlete's rides from database or strava.
     """
-    try:
-        return get_athlete(athlete).rides
-    except:
-        return fetch_new_rides(athlete)
+    return get_athlete(athlete).rides
 
 @strava_id
 def fetch_club_new_rides(club):

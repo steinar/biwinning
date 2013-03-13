@@ -129,10 +129,8 @@ class Ride(Model):
     week = CharField(default='', null=True)
 
     def set_athlete(self, athlete_dict):
-        print "Athlete", athlete_dict
         athlete = Athlete.get_or_create(strava_id=athlete_dict['id'])
         if not athlete.matches_dict(athlete_dict, {'id': 'strava_id'}):
-            print "Not matcing"
             athlete.values_from_dict(athlete_dict, {'id': 'strava_id'})
             athlete.save()
         self.athlete = athlete

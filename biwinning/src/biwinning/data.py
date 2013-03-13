@@ -174,7 +174,7 @@ def fetch_club_new_rides_fair(club):
     """
     One ride per athlete in each iteration
     """
-    generators = [fetch_new_rides(athlete) for athlete in get_athletes(club)]
+    generators = [fetch_new_rides(athlete) for athlete in fetch_athletes(club)]
     while len(generators) > 0:
         for gen in generators:
             try:

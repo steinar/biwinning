@@ -208,10 +208,12 @@ class Ride(Model):
         return "<Ride %s: %s, %s>" % (self.id, self.strava_id, self.start_date)
 
 
-@connect(pre_save, sender=Ride)
-def ride_week(model_class, instance, created):
-    instance.week = instance.start_date_local and instance.start_date_local.strftime("%Y-%W") or None
-
+try:
+    @connect(pre_save, sender=Ride)
+    def ride_week(model_class, instance, created):
+        instance.week = instance.start_date_local and instance.start_date_local.strftime("%Y-%W") or None
+except ValueError, e:
+    print e
 
 class JsonField(TextField):
     def db_value(self, value):

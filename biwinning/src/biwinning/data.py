@@ -67,7 +67,7 @@ def fetch_athletes(club, data=None):
             athlete.values_from_dict({'name': name})
             athlete.save()
 
-        club_athlete = ClubAthlete.get_or_create(club=club, athlete=athlete)
+        club_athlete = ClubAthlete.get_or_create(club=get_club(club), athlete=athlete)
         club_athlete.save()
 
         return athlete

@@ -153,26 +153,24 @@ class AthleteDistanceByWeek(Quantifier):
             )
 
     def add_ride(self, ride):
-        q = self.get(ride.athlete, ride.start_date_local)
-        q.value += ride.distance
+        quantity = self.get(ride.athlete, ride.start_date_local)
+        quantity.value += ride.distance
+        data = quantity.data or {}
+        val = lambda k: data.get(k, 0)
 
-
-        if not q.data:
-            q.data = {}
-
-        val = lambda k: q.data.get(k, 0)
-        q.data.update({
+        data.update({
             'count': val('count') + 1,
             'distance': val('distance') + ride.distance,
             'elevation_gain': val('elevation_gain') + ride.elevation_gain,
             'moving_time': val('moving_time') + ride.moving_time,
         })
 
-        q.data['average_speed'] = val('distance')/val('moving_time')
+        data['average_speed'] = val('distance')/val('moving_time') if val('moving_time') else 0
+        quantity.data = data
 
-        q.save()
+        quantity.save()
 
-        return q
+        return quantity
 
 
     def subtract_ride(self, ride):

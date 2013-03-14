@@ -29,7 +29,14 @@ class Model(db.Model, SignalModel):
         Optional dict key => attribute name translation dictionary may be provided.
         """
         t = key_translation or {}
-        return all([getattr(self, t.get(k, k)) == v for (k,v) in value_dict.items()])
+
+        def decode(x):
+            try:
+                return hasattr(x, 'decode') and x.decode('utf-8', 'ignore') or x
+            except UnicodeEncodeError:
+                return x
+
+        return all([getattr(self, t.get(k, k)) == decode(v) for (k,v) in value_dict.items()])
 
 
     def values_from_dict(self, value_dict, key_translation=None, value_fn=None):

@@ -164,51 +164,6 @@ class Ride(Model):
         self.values_from_dict(value_dict, key_translation, value_fn)
         return self
 
-    @property
-    def is_this_week(self):
-        return self.start_date.isocalendar()[:2] == datetime.datetime.today().isocalendar()[:2]
-
-    @property
-    def week_id(self):
-        return "%s-%s" % self.start_date.isocalendar()[:2]
-
-    @property
-    def is_last_week(self):
-        last_week = (datetime.datetime.today() + datetime.timedelta(days=-7)).isocalendar()
-        return self.start_date.isocalendar()[:2] == last_week[:2]
-
-    @property
-    def is_this_month(self):
-        today = datetime.datetime.today()
-        year_month = lambda d: (d.year, d.month)
-        return year_month(self.start_date) == year_month(today)
-
-    @property
-    def is_last_month(self):
-        last_month = (datetime.datetime.today() + relativedelta(months=-1))
-        year_month = lambda d: (d.year, d.month)
-        return year_month(self.start_date) == year_month(last_month)
-
-    @property
-    def is_last_28_days(self):
-        d = datetime.datetime.today()
-        shift = datetime.timedelta(days=-28, hours=-d.hour, minutes=-d.minute, seconds=d.second,
-            microseconds=-d.microsecond)
-        relative_date = d + shift
-        return self.start_date >= relative_date
-
-    @property
-    def is_last_7_days(self):
-        d = datetime.datetime.today()
-        shift = datetime.timedelta(days=-7, hours=-d.hour, minutes=-d.minute, seconds=d.second,
-            microseconds=-d.microsecond)
-        relative_date = d + shift
-        return self.start_date >= relative_date
-
-    @property
-    def is_this_year(self):
-        return self.start_date.isocalendar()[0] == datetime.datetime.today().isocalendar()[0]
-
     def __repr__(self):
         return "<Ride %s: %s, %s>" % (self.id, self.strava_id, self.start_date)
 

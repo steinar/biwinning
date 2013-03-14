@@ -51,12 +51,12 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="./index.html">Biwinning</a>
+            <a class="brand" href="/">Biwinning</a>
             <div class="nav-collapse collapse">
                 <ul class="nav">
-                    <li class="active"><a href="{{ url_for('clubs') }}">Clubs</a></li>
+                    <li class="{% if not club %}active{% endif %}"><a href="{{ url_for('clubs') }}">Clubs</a></li>
                     {% if club %}
-                    <li><a href="{{ url_for('update', club_id=club.strava_id) }}">Fetch new rides</a></li>
+                    <li class="active"><a href="{{ url_for('weekly_scoreboard', club_id=club.strava_id) }}">Scoreboard</a></li>
                     {% endif %}
                 </ul>
             </div>

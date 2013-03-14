@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import os
+os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
+
 import itertools
 import biwinning
 from werkzeug import script
 from biwinning.config import app, CLUB_ID
 
-os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 
 def make_shell():
     modules = (biwinning.quantify, biwinning.data, biwinning.models, biwinning.utils)

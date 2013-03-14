@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import os
+os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
+
 import sys
 from biwinning import app
 
-os.chdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 
 if __name__ == '__main__':
     debug = 'debug' in sys.argv

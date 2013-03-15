@@ -2,7 +2,7 @@ import datetime
 import simplejson
 from biwinning.config import db
 from dateutil.relativedelta import relativedelta
-from peewee import TextField, IntegerField, CharField, DateTimeField, BooleanField, TimeField, FloatField, ForeignKeyField, fn, JOIN_INNER, JOIN_FULL, JOIN_LEFT_OUTER
+from peewee import TextField, IntegerField, CharField, DateTimeField, BooleanField, TimeField, FloatField, ForeignKeyField, fn, JOIN_INNER, JOIN_FULL, JOIN_LEFT_OUTER, DateField
 from playhouse.signals import Model as SignalModel, pre_save, connect
 from biwinning.utils import convert, parse_date
 
@@ -133,7 +133,10 @@ class Ride(Model):
     json = TextField(default='')
 
     # Added fields (not from strava)
+    date = DateField(null=True)
     week = CharField(default='', null=True)
+    month = CharField(default='', null=True)
+    year = CharField(default='', null=True)
 
     def set_athlete(self, athlete_dict):
         athlete = Athlete.get_or_create(strava_id=athlete_dict['id'])
@@ -171,7 +174,14 @@ class Ride(Model):
 try:
     @connect(pre_save, sender=Ride)
     def ride_week(model_class, instance, created):
-        instance.week = instance.start_date_local and instance.start_date_local.strftime("%Y-%W") or None
+        date = instance.start_date_local
+        instance.date = date and date.date() or None
+        instance.week = date and date.strftime("%Y-%W") or None
+        instance.month = date and date.strftime("%Y-%m") or None
+        instance.year = date and date.strftime("%Y") or None
+
+    pass
+
 except ValueError, e:
     print e
 

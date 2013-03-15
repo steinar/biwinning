@@ -19,6 +19,8 @@
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
 
     <script src="/static/js/content.js" xmlns="http://www.w3.org/1999/html"></script>
+    <script src="/static/js/charts.js" xmlns="http://www.w3.org/1999/html"></script>
+
 
     <style>
         body {
@@ -56,7 +58,12 @@
                 <ul class="nav">
                     <li class="{% if not club %}active{% endif %}"><a href="{{ url_for('clubs') }}">Clubs</a></li>
                     {% if club %}
-                    <li class="active"><a href="{{ url_for('weekly_scoreboard', club_id=club.strava_id) }}">Scoreboard</a></li>
+                    <li class="{% if request.path == url_for('club_overview', club_id=club.strava_id) %}active{% endif %}">
+                        <a href="{{ url_for('club_overview', club_id=club.strava_id) }}">Overview</a>
+                    </li>
+                    <li class="{% if request.path == url_for('weekly_scoreboard', club_id=club.strava_id) %}active{% endif %}">
+                        <a href="{{ url_for('weekly_scoreboard', club_id=club.strava_id) }}">Weeks</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block extra_header %}
+<script src="/static/js/charts.js" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"></script>
+{% endblock %}
+{% block body %}
+<h1 style="display:none">Biwinning</h1>
+<h2>Overview for {{ club.name }}</h2>
+<div>
+    <div id="content">
+        <div class="row">
+            <div class="span12">
+                <h3>This week</h3>
+
+                <p><i class="icon-calendar"></i>{{ week_start|date }} - {{ week_end|date }}</p>
+
+                <div class="row">
+                    {% include 'week_row_snippet.html' %}
+                </div>
+                <a class="btn" href="{{ url_for('weekly_scoreboard', club_id=club.strava_id) }}">
+                    More weeks</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span12">
+                <h3>Past 28 days</h3>
+
+                <div class="row">
+                    <div class="span4">
+                        <table class="table table-hover">
+                            <thead>
+                            <th>Name</th>
+                            <th>Distance</th>
+                            </thead>
+                            <tbody>
+                            {% for result in last_28_days %}
+                            <tr>
+                                <td>{{ result.athlete.name }}</td>
+                                <td>
+                                    <a data-toggle="tooltip" data-placement="top" title="{{ result.count }} rides">
+                                        {{ result.distance|km }}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan=2>Wh00t, no rides for 28 days?! Hopefully a system error.</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

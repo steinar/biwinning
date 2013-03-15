@@ -3,7 +3,7 @@ import os
 from biwinning.config import app
 from biwinning.data import get_club
 from biwinning.models import Club
-from biwinning.quantify import AthleteDistanceByWeek
+from biwinning.quantify import AthleteDistanceByWeek, AthleteDistanceByDay
 from biwinning.tasks import update_club
 from biwinning.utils import  monday, date, week_id
 
@@ -13,7 +13,7 @@ print_safe = lambda x: x.decode('utf8', 'ignore')
 @app.route('/')
 def index():
     if session.get('club_id'):
-        return redirect(url_for('weekly_scoreboard', club_id=session['club_id']))
+        return redirect(url_for('club_overview', club_id=session['club_id']))
     return redirect(url_for('clubs'))
 
 
@@ -21,6 +21,28 @@ def index():
 def clubs():
     clubs = Club.all_augmented()
     return render_template('clubs.html', clubs=clubs)
+
+
+@app.route('/<club_id>/overview')
+def club_overview(club_id):
+    club = get_club(club_id)
+
+    quantifier_day = AthleteDistanceByDay(club)
+    last_28_days = quantifier_day.last_28_days()[0:5]
+
+    quantifier_week = AthleteDistanceByWeek(club)
+    week_scoreboards = dict([(week, quantifier_week.scoreboard(week)) for week in [week_id(monday(0))]])
+
+    return render_template('club-overview.html',
+        club=club,
+        last_28_days=last_28_days,
+        week_scoreboards=week_scoreboards,
+        week_id=week_id(monday(0)),
+        week_start = monday(),
+        week_end = monday(+1)
+    )
+
+
 
 
 @app.route('/<club_id>/weeks')
@@ -36,11 +58,11 @@ def weekly_scoreboard(club_id, first_week_id=None):
     club = get_club(club_id)
     session['club_id'] = club_id
     quantifier = AthleteDistanceByWeek(club)
-    scoreboards = dict((week[0], quantifier.scoreboard(week[0])) for week in weeks)
+    week_scoreboards = dict((week[0], quantifier.scoreboard(week[0])) for week in weeks)
 
     return render_template('rides-by-week.html',
         club=club,
-        scoreboards=scoreboards,
+        week_scoreboards=week_scoreboards,
         weeks=weeks,
         next_week_id=week_id(mon(-week_per_request))
     )

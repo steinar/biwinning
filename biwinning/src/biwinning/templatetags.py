@@ -17,7 +17,7 @@ def date(date, fmt='%d/%m/%y'):
     return date.strftime(fmt)
 
 @register
-def kilo(n):
+def km(n):
     return do_mark_safe("%s <small>km</small>" % round(n/1000))
 
 @register

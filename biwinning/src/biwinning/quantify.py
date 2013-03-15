@@ -1,5 +1,5 @@
 import datetime
-from peewee import fn
+from peewee import fn, R
 from biwinning.config import QUANTIFIERS
 from biwinning.models import Ride, Quantity, Athlete, ClubAthlete
 
@@ -26,13 +26,17 @@ class Quantifier(object):
     def get_value(self, *args, **kwargs):
         pass
 
-    def get(self, *args, **kwargs):
-        pass
+    def get(self, athlete, key):
+        try:
+            return Quantity.get(class_name=self.name, athlete=athlete, key=self._key(key))
+        except Quantity.DoesNotExist:
+            return Quantity(class_name=self.name, athlete=athlete, key=self._key(key), value=0)
+
 
     def all(self):
-        pass
+        return Quantity.select().where(Quantity.class_name == self.name)
 
-    def fetch_data(self, max_strava_id=0):
+    def _fetch_data(self, max_strava_id=0):
         """
         Yield data for rides newer than max_strava_id.
         """
@@ -42,7 +46,9 @@ class Quantifier(object):
         """
         Rebuild local storage.
         """
-        pass
+
+    def rebuild(self):
+        self.update(None)
 
     def update(self, *args, **kwargs):
         """
@@ -56,10 +62,13 @@ class Quantifier(object):
         """
         pass
 
-    def key(self, *args, **kwargs):
+    def _key(self, *args, **kwargs):
         """
         Key for individual quantity entry.
         """
+        pass
+
+    def clean(self):
         pass
 
 
@@ -67,23 +76,27 @@ class Quantifier(object):
 @quantifier
 class AthleteDistanceByWeek(Quantifier):
     unit = 'm'
+    group_by = (Ride.athlete, Ride.week)
 
     def __init__(self, club):
         self.club = club
         self.data = {}
         super(AthleteDistanceByWeek, self).__init__()
 
-    def rebuild(self):
-        self.update(None)
 
-    def key(self, week_or_date):
-        return isinstance(week_or_date, datetime.date) and week_or_date.strftime("%Y-%W") or week_or_date
+    def _key(self, ride_or_date):
+        if isinstance(ride_or_date, Ride):
+            return ride_or_date.week
+        return isinstance(ride_or_date, datetime.date) and ride_or_date.strftime("%Y-%W") or ride_or_date
 
-    def base_query(self):
+    def _base_query(self):
         return (Ride
                  .select(
             Ride.athlete,
             Ride.week,
+            Ride.month,
+            Ride.year,
+            Ride.date,
             fn.Max(Ride.strava_id).alias('max_strava_id'),
             fn.Sum(Ride.distance).alias('distance'),
             fn.Sum(Ride.elevation_gain).alias('elevation_gain'),
@@ -93,7 +106,10 @@ class AthleteDistanceByWeek(Quantifier):
                  .where(ClubAthlete.club == self.club)
             )
 
-    def weeks_query(self):
+    def _key_query(self):
+        """
+        List of weeks in which athlete has one or more rides.
+        """
         return (Ride
          .select(Ride.week)
          .join(Athlete).join(ClubAthlete)
@@ -102,10 +118,10 @@ class AthleteDistanceByWeek(Quantifier):
         )
 
     def orphans(self):
-        return Quantity.select().where(~(Quantity.key << self.weeks_query()))
+        return Quantity.select().where(~(Quantity.key << self._key_query()))
 
-    def fetch_data(self, athlete=None, max_strava_id=0):
-        query = self.base_query()
+    def _fetch_data(self, athlete=None, max_strava_id=0, group_by=None):
+        query = self._base_query()
 
         if max_strava_id:
             query = query.where(Ride.strava_id > max_strava_id)
@@ -113,47 +129,39 @@ class AthleteDistanceByWeek(Quantifier):
         if athlete:
             query = query.where(Ride.athlete == athlete)
 
-        query = query.group_by(Ride.athlete, Ride.week)
+        if group_by:
+            query = query.group_by(*group_by)
 
-        for ride in query:
-            yield ride.athlete, ride.week, ride.max_strava_id, ride.distance, ride.elevation_gain, ride.moving_time, ride.count
+        return query
 
-    def get(self, athlete, week_or_date):
-        try:
-            return Quantity.get(class_name=self.name, athlete=athlete, key=self.key(week_or_date))
-        except Quantity.DoesNotExist:
-            return Quantity(class_name=self.name, athlete=athlete, key=self.key(week_or_date), value=0)
 
-    def all(self):
-        return Quantity.select().where(Quantity.class_name == self.name)
-
-    def update(self, athlete):
-        max_strava_id = athlete and Quantity.get_max_strava_id(athlete) or 0
-        for athlete, week, max_strava_id, distance, elevation_gain, moving_time, count in self.fetch_data():
+    def update(self, max_strava_id):
+        for result in self._fetch_data(group_by=self.group_by):
+            print result
             Quantity.add_or_update(self.name,
-                athlete,
-                self.key(week),
-                max_strava_id,
-                distance,
-                {'count': count,
-                 'elevation_gain': elevation_gain,
-                 'moving_time': moving_time,
-                 'distance': distance,
-                 'average_speed': distance/moving_time
+                result.athlete,
+                self._key(result),
+                result.max_strava_id,
+                result.distance,
+                {'count': result.count,
+                 'elevation_gain': result.elevation_gain,
+                 'moving_time': result.moving_time,
+                 'distance': result.distance,
+                 'average_speed': result.distance/result.moving_time
                 }
             )
 
     def scoreboard(self, week_or_date):
         return (Quantity
                 .select()
-                .where(Quantity.key == self.key(week_or_date), Quantity.value > 0)
+                .where(Quantity.key == self._key(week_or_date), Quantity.value > 0)
                 .join(Athlete)
                 .join(ClubAthlete)
                 .where(ClubAthlete.club == self.club).order_by(Quantity.value.desc())
             )
 
     def add_ride(self, ride):
-        quantity = self.get(ride.athlete, ride.start_date_local)
+        quantity = self.get(athlete=ride.athlete, key=ride.start_date_local)
         quantity.value += ride.distance
         data = quantity.data or {}
         val = lambda k: data.get(k, 0)
@@ -174,10 +182,14 @@ class AthleteDistanceByWeek(Quantifier):
 
 
     def subtract_ride(self, ride):
-        q = self.get(ride.athlete, ride.start_date_local)
+        q = self.get(athlete=ride.athlete, key=ride.start_date_local)
         q.value -= ride.distance
 
         d = lambda k: q.data.get(k, 0)
+
+        if d('count') == 1:
+            q.delete_instance()
+            return None
 
         q.data.update({
             'count': d('count') - 1,
@@ -192,3 +204,57 @@ class AthleteDistanceByWeek(Quantifier):
 
         return q
 
+    def clean(self):
+        return len([q.delete_instance() for q in self.orphans()])
+
+
+@quantifier
+class AthleteDistanceByDay(AthleteDistanceByWeek):
+    unit = 'm'
+    group_by = (Ride.athlete, Ride.date)
+
+    def _key(self, ride_or_date):
+        if isinstance(ride_or_date, Ride):
+            return ride_or_date.week
+        if isinstance(ride_or_date, datetime.datetime):
+            return ride_or_date.date()
+        return ride_or_date
+
+
+    def _key_query(self):
+        return (Ride
+                .select(Ride.week)
+                .join(Athlete).join(ClubAthlete)
+                .where(ClubAthlete.club == self.club)
+                .group_by(Ride.date)
+            )
+
+    def last_28_days(self):
+        query = (self._fetch_data()
+                 .where(Ride.date >= datetime.date.today() - datetime.timedelta(days=28))
+                 .group_by(Ride.athlete)
+                 .order_by(R('distance desc'))
+            )
+        return query
+
+
+@quantifier
+class AthleteDistanceByMonth(AthleteDistanceByWeek):
+    unit = 'm'
+    group_by = (Ride.athlete, Ride.month)
+
+    def _key(self, ride_or_date):
+        if isinstance(ride_or_date, Ride):
+            return ride_or_date.month
+        if isinstance(ride_or_date, datetime.datetime):
+            return ride_or_date.strftime("%Y-%m")
+        return ride_or_date
+
+
+    def _key_query(self):
+        return (Ride
+                .select(Ride.month)
+                .join(Athlete).join(ClubAthlete)
+                .where(ClubAthlete.club == self.club)
+                .group_by(Ride.date)
+            )

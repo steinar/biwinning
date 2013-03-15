@@ -1,58 +1,19 @@
 {% extends 'base.html' %}
 {% block extra_header %}
-<script src="/static/js/charts.js" xmlns="http://www.w3.org/1999/html"></script>
 {% endblock %}
 {% block body %}
 <h1 style="display:none">Biwinning</h1>
 <h2>Weekly scoreboard for {{ club.name }}</h2>
 <div>
     <div id="content">
-        {% for (week_id, a, b) in weeks %}
+        {% for (week_id, week_start, week_end) in weeks %}
         <div class="row">
             <div class="span12">
                 <h3>Week {{ week_id }}</h3>
 
-                <p><i class="icon-calendar"></i>{{ a|date }} - {{ b|date }}</p>
+                <p><i class="icon-calendar"></i>{{ week_start|date }} - {{ week_end|date }}</p>
             </div>
-            <div class="span6 pull-right">
-                <div data-ajax-url="{{ url_for('api_week_chart', club_id=club.strava_id, week_id=week_id) }}"
-                     class='barchart'
-                     style='height: 200px;{% if not scoreboards[week_id] %}display: none;{% endif %}'></div>
-            </div>
-            <div class="span6">
-                <table class="table-data table table-hover">
-                    <thead>
-                    <th></th>
-                    <th>Athlete</th>
-                    <th class="right">Distance</th>
-                    <th class="right">Elevation gain</th>
-                    <th class="right">Average speed</th>
-                    </thead>
-                    <tbody>
-                    {% for quantity in scoreboards[week_id] %}
-                    <tr>
-                        <td>#{{loop.index}}</td>
-                        <td><a href="{{quantity.athlete.url}}">{{ quantity.athlete.name }}</a></td>
-                        <td class="right">
-                            <a data-toggle="tooltip" data-placement="top" title="{{ quantity.data.count }} rides">
-                                {{ quantity.value|kilo }}
-                            </a>
-                        </td>
-                        <td class="right">{{ quantity.data.elevation_gain|meters }}</td>
-                        <td class="right"><a data-toggle="tooltip" data-placement="top"
-                                             title="Moving time {{ quantity.data.moving_time|minutes }}">
-                            {{quantity.data.average_speed|ms2km }}
-                        </a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="center"><em>No rides this week</em></td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% include 'week_row_snippet.html' %}
         </div>
         {% endfor %}
     </div>

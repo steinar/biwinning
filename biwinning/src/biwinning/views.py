@@ -4,7 +4,7 @@ from biwinning.config import app
 from biwinning.data import get_club
 from biwinning.models import Club
 from biwinning.quantify import AthleteDistanceByWeek, AthleteDistanceByDay
-from biwinning.tasks import update_club
+from biwinning.tasks import update_club, reload_club_week
 from biwinning.utils import  monday, date, week_id
 
 print_safe = lambda x: x.decode('utf8', 'ignore')
@@ -66,6 +66,12 @@ def weekly_scoreboard(club_id, first_week_id=None):
         weeks=weeks,
         next_week_id=week_id(mon(-week_per_request))
     )
+
+@app.route('/<club_id>/reload-week/<week_id>')
+def reload_week(club_id, week_id):
+    reload_club_week(club_id, week_id)
+    return redirect(url_for('weekly_scoreboard', club_id=club_id, first_week_id=week_id))
+
 
 
 @app.route('/<club_id>/update')

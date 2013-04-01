@@ -11,7 +11,10 @@
             <div class="span12">
                 <h3>Week {{ week_id }}</h3>
 
-                <p><i class="icon-calendar"></i>{{ week_start|date }} - {{ week_end|date }}</p>
+                <p>
+                    <i class="icon-calendar"></i>{{ week_start|date }} - {{ week_end|date }}
+                    <a class="btn btn-mini" href="{{ url_for('reload_week', club_id=club.strava_id, week_id=week_id) }}"><i class="icon- icon-refresh"></i> Reload rides</a>
+                </p>
             </div>
             {% include 'week_row_snippet.html' %}
         </div>

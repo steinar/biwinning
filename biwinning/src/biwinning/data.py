@@ -197,6 +197,12 @@ def get_orphan_rides(club):
         for id in db_ids.difference(strava_ids):
             yield Ride.get(Ride.strava_id == id)
 
+
+@strava_id
+def get_club_rides_for_week(club, week_id):
+    club = get_club(club)
+    return Ride.select().join(Athlete).join(ClubAthlete).where(Ride.week==week_id, ClubAthlete.club==club)
+
 #def authenticate():
 #    data = {'email': 'hugi@steinar.is', 'password': 'azazo', 'agreed_to_terms': '1'}
 #    fp = urllib2.urlopen('http://www.strava.com/api/v1/authentication/login',

@@ -2,7 +2,7 @@
     <div class="span6 pull-right">
         <div data-ajax-url="{{ url_for('api_week_chart', club_id=club.strava_id, week_id=week_id) }}"
              class='barchart'
-             style='height: 200px;{% if not week_scoreboards[week_id] %}display: none;{% endif %}'></div>
+             style='{% if not week_scoreboards[week_id] %}display: none;{% endif %}'></div>
     </div>
     <div class="span6">
         <table class="table-data table table-hover">

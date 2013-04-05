@@ -7,7 +7,7 @@ from biwinning.tasks import update_club
 
 def update():
     for club in Club.all():
-        print "Updating: ", club
+        print "Updating: ", club.strava_id
         update_club(club)
 
 if __name__ == '__main__':

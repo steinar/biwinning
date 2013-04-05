@@ -48,6 +48,7 @@ class Quantifier(object):
         """
 
     def rebuild(self):
+        [q.delete_instance() for q in self.all()]
         self.update(None)
 
     def update(self, *args, **kwargs):
@@ -118,7 +119,7 @@ class AthleteDistanceByWeek(Quantifier):
         )
 
     def orphans(self):
-        return Quantity.select().where(~(Quantity.key << self._key_query()))
+        return Quantity.select().where(Quantity.class_name == self.name, ~(Quantity.key << self._key_query()))
 
     def _fetch_data(self, athlete=None, max_strava_id=0, group_by=None):
         query = self._base_query()
@@ -137,7 +138,6 @@ class AthleteDistanceByWeek(Quantifier):
 
     def update(self, max_strava_id):
         for result in self._fetch_data(group_by=self.group_by):
-            print result
             Quantity.add_or_update(self.name,
                 result.athlete,
                 self._key(result),
@@ -154,7 +154,7 @@ class AthleteDistanceByWeek(Quantifier):
     def scoreboard(self, week_or_date):
         return (Quantity
                 .select()
-                .where(Quantity.key == self._key(week_or_date), Quantity.value > 0)
+                .where(Quantity.class_name == self.name, Quantity.key == self._key(week_or_date), Quantity.value > 0)
                 .join(Athlete)
                 .join(ClubAthlete)
                 .where(ClubAthlete.club == self.club).order_by(Quantity.value.desc())

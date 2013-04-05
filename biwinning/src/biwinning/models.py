@@ -168,7 +168,7 @@ class Ride(Model):
         return self
 
     def __repr__(self):
-        return "<Ride %s: %s, %s>" % (self.id, self.strava_id, self.start_date)
+        return "<Ride %s: %s, %s, %s>" % (self.id, self.athlete, self.strava_id, self.start_date)
 
 
 try:
@@ -220,7 +220,7 @@ class Quantity(Model):
         return str(self.value)
 
     def __repr__(self):
-        return "<Quantity %s: %s, %s, %s>" % (self.id, self.class_name, self.key, self.value)
+        return "<Quantity %s: %s, %s, %s, %s>" % (self.id, self.class_name, self.athlete, self.key, self.value)
 
 
 for cls in MODELS:

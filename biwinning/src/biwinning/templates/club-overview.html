@@ -5,6 +5,7 @@
 {% block body %}
 <h1 style="display:none">Biwinning</h1>
 <h2>Overview for {{ club.name }}</h2>
+<a class="btn btn-mini pull-right" title="Fetch now - also done periodically" href="{{ url_for('update', club_id=club.strava_id) }}"><i class="icon- icon-refresh"></i> Fetch rides now</a>
 <div>
     <div id="content">
         <div class="row">

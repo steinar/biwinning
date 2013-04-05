@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, session, send_from_directory
+from flask import render_template, redirect, url_for, session, send_from_directory, request
 import os
 from biwinning.config import app
 from biwinning.data import get_club
@@ -21,6 +21,13 @@ def index():
 def clubs():
     clubs = Club.all_augmented()
     return render_template('clubs.html', clubs=clubs)
+
+@app.route('/add-club', methods=['POST'])
+def add_club():
+    club = get_club(request.form['add_club_id'])
+    if club:
+        return redirect(url_for('club_overview', club_id=club.strava_id))
+    return redirect(url_for('clubs'))
 
 
 @app.route('/<club_id>/overview')

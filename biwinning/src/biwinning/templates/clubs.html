@@ -13,12 +13,25 @@
             <tbody>
             {% for club in clubs %}
             <tr>
-                <td><a href="{{ url_for('weekly_scoreboard', club_id=club.strava_id) }}">{{club.name}}</a></td>
+                <td><a href="{{ url_for('club_overview', club_id=club.strava_id) }}">{{club.name}}</a></td>
                 <td>{{ club.athlete_count }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <form action="{{ url_for('add_club') }}" method="post">
+            <fieldset>
+                <legend>Add club</legend>
+                <label>Club id</label>
+                <input type="text" name="add_club_id" placeholder="Enter Strava club id">
+                <span class="help-block">I.e. http://app.strava.com/clubs/<strong>7459</strong>/participants</span>
+                <button type="submit" class="btn">Add</button>
+            </fieldset>
+        </form>
     </div>
 </div>
 {% endblock %}

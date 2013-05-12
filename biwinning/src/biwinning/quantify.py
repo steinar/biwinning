@@ -215,7 +215,7 @@ class AthleteDistanceByDay(AthleteDistanceByWeek):
 
     def _key(self, ride_or_date):
         if isinstance(ride_or_date, Ride):
-            return ride_or_date.week
+            return ride_or_date.date
         if isinstance(ride_or_date, datetime.datetime):
             return ride_or_date.date()
         return ride_or_date
@@ -223,7 +223,7 @@ class AthleteDistanceByDay(AthleteDistanceByWeek):
 
     def _key_query(self):
         return (Ride
-                .select(Ride.week)
+                .select(Ride.date)
                 .join(Athlete).join(ClubAthlete)
                 .where(ClubAthlete.club == self.club)
                 .group_by(Ride.date)

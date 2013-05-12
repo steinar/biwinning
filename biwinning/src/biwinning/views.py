@@ -1,3 +1,5 @@
+import datetime
+import pprint
 from flask import render_template, redirect, url_for, session, send_from_directory, request
 import os
 from biwinning.config import app
@@ -5,7 +7,7 @@ from biwinning.data import get_club
 from biwinning.models import Club
 from biwinning.quantify import AthleteDistanceByWeek, AthleteDistanceByDay
 from biwinning.tasks import update_club, reload_club_week
-from biwinning.utils import  monday, date, week_id
+from biwinning.utils import  monday, week_id_to_date, week_id, day_id, day_id_to_date
 
 print_safe = lambda x: x.decode('utf8', 'ignore')
 
@@ -56,7 +58,7 @@ def club_overview(club_id):
 @app.route('/<club_id>/weeks/<first_week_id>')
 def weekly_scoreboard(club_id, first_week_id=None):
     week_per_request = 3
-    base_date = date(first_week_id or week_id(monday()))
+    base_date = week_id_to_date(first_week_id or week_id(monday()))
     mon = lambda i: monday(i, base_date)
 
     weeks = [(week_id(mon(-i)), mon(-i), mon(-i + 1))
@@ -74,24 +76,49 @@ def weekly_scoreboard(club_id, first_week_id=None):
         next_week_id=week_id(mon(-week_per_request))
     )
 
+
+@app.route('/<club_id>/days')
+@app.route('/<club_id>/days/<first_day_id>')
+def daily_scoreboard(club_id, first_day_id=None):
+    days_per_request = 3
+    base_date = first_day_id and day_id_to_date(first_day_id) or datetime.date.today()
+
+    days = [(day_id(base_date, -i))
+             for i in range(0, days_per_request)]
+
+    club = get_club(club_id)
+    session['club_id'] = club_id
+    quantifier = AthleteDistanceByDay(club)
+    scoreboard = dict((day, quantifier.scoreboard(day)) for day in days)
+
+    # pprint.pprint([(k, list(v)) for (k,v) in scoreboard.items()])
+
+    return render_template('rides-by-day.html',
+        club=club,
+        scoreboard=scoreboard,
+        days=days,
+        next_day_id=day_id(base_date, -days_per_request)
+    )
+
 @app.route('/<club_id>/reload-week/<week_id>')
 def reload_week(club_id, week_id):
     reload_club_week(club_id, week_id)
     return redirect(url_for('weekly_scoreboard', club_id=club_id, first_week_id=week_id))
 
 
-
 @app.route('/<club_id>/update')
 def update(club_id):
     club = get_club(club_id)
-    return render_template('update.html', club=club)
+    next_view = request.args.get('next') or 'club_overview'
+    return render_template('update.html', club=club, next_view=next_view)
 
 
 @app.route('/<club_id>/do-update')
 def do_update(club_id):
     club = get_club(club_id)
     update_club(club)
-    return redirect(url_for('weekly_scoreboard', club_id=club_id))
+    next_view = request.args.get('next') or 'club_overview'
+    return redirect(url_for(next_view, club_id=club_id))
 
 
 @app.route('/static/js/<path:filename>')

@@ -54,7 +54,7 @@ var renderChart = function (item) {
             return item.value
         });
 
-        $item.height(50+38*values.length)
+        $item.height(50+39*values.length)
 
         $item.data('chart', makeChart(categories, [{'name': 'Km', data: values}]));
     });

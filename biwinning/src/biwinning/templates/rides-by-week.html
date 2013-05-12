@@ -4,7 +4,7 @@
 {% block body %}
 <h1 style="display:none">Biwinning</h1>
 <h2>Weekly scoreboard for {{ club.name }}</h2>
-<a class="btn btn-mini pull-right" title="Fetch now - also done periodically" href="{{ url_for('update', club_id=club.strava_id) }}"><i class="icon- icon-refresh"></i> Fetch rides now</a>
+<a class="btn btn-mini pull-right" title="Fetch now - also done periodically" href="{{ url_for('update', club_id=club.strava_id) }}?next=weekly_scoreboard"><i class="icon- icon-refresh"></i> Fetch rides now</a>
 <div>
     <div id="content">
         {% for (week_id, week_start, week_end) in weeks %}

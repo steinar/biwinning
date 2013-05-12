@@ -2,5 +2,5 @@
 {% block body %}
     <h1>Biwinning</h1>
     <p><i class="icon-time"></i>This may take a while...</p>
-    <meta http-equiv="refresh" content="0;URL={{ url_for('do_update', club_id=club.strava_id) }}">
+    <meta http-equiv="refresh" content="0;URL={{ url_for('do_update', club_id=club.strava_id) }}?next={{next_view}}">
 {% endblock %}

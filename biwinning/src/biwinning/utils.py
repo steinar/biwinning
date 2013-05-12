@@ -31,5 +31,14 @@ def monday(offset=0, relative_to=None):
 def week_id(date):
     return date.strftime("%Y-%W")
 
-def date(week_id):
+def week_id_to_date(week_id):
     return datetime.datetime.strptime("%s-1" % week_id, "%Y-%W-%w").date()
+
+def day_id(date=None, offset=0):
+    date = date or datetime.date.today()
+    if offset:
+        date += datetime.timedelta(days=offset)
+    return date.strftime("%Y-%m-%d")
+
+def day_id_to_date(date_id):
+    return datetime.datetime.strptime(date_id, '%Y-%m-%d').date()

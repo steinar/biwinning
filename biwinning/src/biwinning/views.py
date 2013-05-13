@@ -113,7 +113,7 @@ def update(club_id):
 
 
 @app.route('/<club_id>/clean')
-def update(club_id):
+def clean(club_id):
     club = get_club(club_id)
     clean_club(club)
     next_view = request.args.get('next') or 'club_overview'

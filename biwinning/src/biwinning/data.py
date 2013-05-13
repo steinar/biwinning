@@ -244,8 +244,7 @@ def fetch_new_club_rides_fast(club, num_threads=20):
     def construct_ride(data):
         instance = Ride.get_or_create(strava_id=data['id']).populate_from_dict(data)
         instance.save()
-        return instance.strava_id
+        return instance
 
-    for ride in itertools.chain(*[map(construct_ride, r) for (x,r) in [(t.join(), r) for (t,r) in ride_data_threads] if r]):
-        yield ride
+    return itertools.chain(*[map(construct_ride, r) for (x,r) in [(t.join(), r) for (t,r) in ride_data_threads] if r])
 

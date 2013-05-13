@@ -10,7 +10,7 @@
         {% for day_id in days %}
         <div class="row">
             <div class="span12">
-                <h3>{{ day_id|date }}</h3>
+                <h3>{{ day_id|date('%d/%m/%y %A') }}</h3>
             </div>
             {% include 'day_row_snippet.html' %}
         </div>

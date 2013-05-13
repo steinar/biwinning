@@ -5,7 +5,7 @@ from biwinning.config import app
 from biwinning.data import get_club
 from biwinning.models import Club
 from biwinning.quantify import AthleteDistanceByWeek, AthleteDistanceByDay
-from biwinning.tasks import update_club, reload_club_week
+from biwinning.tasks import update_club, reload_club_week, clean_club
 from biwinning.utils import  monday, week_id_to_date, week_id, day_id, day_id_to_date
 
 print_safe = lambda x: x.decode('utf8', 'ignore')
@@ -110,6 +110,14 @@ def update(club_id):
     club = get_club(club_id)
     next_view = request.args.get('next') or 'club_overview'
     return render_template('update.html', club=club, next_view=next_view)
+
+
+@app.route('/<club_id>/clean')
+def update(club_id):
+    club = get_club(club_id)
+    clean_club(club)
+    next_view = request.args.get('next') or 'club_overview'
+    return redirect(url_for(next_view, club_id=club_id))
 
 
 @app.route('/<club_id>/do-update')

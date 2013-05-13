@@ -17,5 +17,6 @@ def clean_club(club):
     [ride.delete_instance() for ride in get_orphan_rides(club)]
 
     # Remove orphan quantity records
-    for quantifier in QUANTIFIERS:
+    quantifiers = [q(club) for q in QUANTIFIERS]
+    for quantifier in quantifiers:
         [quantity.delete_instance() for quantity in quantifier.orphans()]

@@ -7,7 +7,9 @@ Fetch methods will request data from strava, create the corresponding model inst
 Get methods fetch from strava only if the data is not found in the local database.
 
 """
+from threading import Thread
 import urllib2
+import itertools
 import simplejson
 from biwinning.config import db
 from biwinning.models import Ride, Club, Athlete, ClubAthlete
@@ -203,15 +205,47 @@ def get_club_rides_for_week(club, week_id):
     club = get_club(club)
     return Ride.select().join(Athlete).join(ClubAthlete).where(Ride.week==week_id, ClubAthlete.club==club)
 
-#def authenticate():
-#    data = {'email': 'hugi@steinar.is', 'password': 'azazo', 'agreed_to_terms': '1'}
-#    fp = urllib2.urlopen('http://www.strava.com/api/v1/authentication/login',
-#        "&".join("=".join([k,v]) for (k,v) in data.items()))
-#    return simplejson.loads(fp.read())
-#
-#def get_authentication():
-#    from biwinning.config import STRAVA_AUTH
-#    if not STRAVA_AUTH:
-#        STRAVA_AUTH.update(authenticate())
-#    return STRAVA_AUTH
+
+@strava_id
+def fetch_club_new_ride_ids(club):
+    return itertools.chain(
+        *(fetch_athlete_ride_ids(athlete, startId=athlete.max_ride_id) for athlete in get_athletes(club))
+    )
+
+def fetch_new_club_rides_fast(club, num_threads=20):
+    def ride_ids(athlete):
+        ride_ids = []
+        strava_id, max_ride_id = athlete.strava_id, athlete.max_ride_id
+        f = lambda l: l.extend(list(fetch_athlete_ride_ids(strava_id, startId=max_ride_id)))
+        thread = Thread(target=f, args=(ride_ids,))
+        return thread, ride_ids
+
+    def ride_data(ids):
+        data = []
+        f = lambda l: l.extend([load_json("http://www.strava.com/api/v1/rides/%s" % ride_id)['ride'] for ride_id in ids])
+        thread = Thread(target=f, args=(data,))
+        return thread, data
+
+    # Step 1: For each athlete, find out which rides are new on remote
+    id_threads = [ride_ids(athlete) for athlete in get_athletes(club)]
+    [t.start() for (t,r) in id_threads]
+
+    # Step 2: Construct evenly distributed lists of ids
+    ride_ids = itertools.chain(*[r for (x,r) in [(t.join(), r) for (t,r) in id_threads] if r])
+    ids = [r for r in ride_ids]
+    batch_size = len(ids) / num_threads + (1 if len(ids) % num_threads else 1)
+    chuncks = [ids[i:i+batch_size] for i in range(0, len(ids), batch_size)]
+
+    # Step 3: Fetch data for new rides from remote and construct Ride objects
+    ride_data_threads = [ride_data(ids) for ids in chuncks]
+
+    [t.start() for (t,r) in ride_data_threads]
+
+    def construct_ride(data):
+        instance = Ride.get_or_create(strava_id=data['id']).populate_from_dict(data)
+        instance.save()
+        return instance.strava_id
+
+    for ride in itertools.chain(*[map(construct_ride, r) for (x,r) in [(t.join(), r) for (t,r) in ride_data_threads] if r]):
+        yield ride
 

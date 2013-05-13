@@ -1,9 +1,10 @@
 from biwinning.config import QUANTIFIERS
-from biwinning.data import fetch_club_new_rides_fair, get_orphan_rides, get_club_rides_for_week, fetch_ride
+from biwinning.data import fetch_club_new_rides_fair, get_orphan_rides, get_club_rides_for_week, fetch_ride, fetch_new_club_rides_fast
 
-def update_club(club):
+
+def update_club(club, threaded=False):
     # Add new rides
-    for ride in fetch_club_new_rides_fair(club):
+    for ride in (fetch_new_club_rides_fast(club) if threaded else fetch_club_new_rides_fair(club)):
         quantifiers = [q(club) for q in QUANTIFIERS]
         [q.add_ride(ride) for q in quantifiers]
 

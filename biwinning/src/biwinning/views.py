@@ -1,7 +1,6 @@
-import datetime
-import pprint
-from flask import render_template, redirect, url_for, session, send_from_directory, request
 import os
+import datetime
+from flask import render_template, redirect, url_for, session, send_from_directory, request
 from biwinning.config import app
 from biwinning.data import get_club
 from biwinning.models import Club
@@ -116,7 +115,7 @@ def update(club_id):
 @app.route('/<club_id>/do-update')
 def do_update(club_id):
     club = get_club(club_id)
-    update_club(club)
+    update_club(club, threaded=True)
     next_view = request.args.get('next') or 'club_overview'
     return redirect(url_for(next_view, club_id=club_id))
 

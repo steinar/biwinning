@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block extra_header %}
+<script src="/static/js/charts.js" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"></script>
+{% endblock %}
+{% block body %}
+<h1 style="display:none">Biwinning</h1>
+<h2>Date range for {{ club.name }}</h2>
+<a class="btn btn-mini pull-right" title="Fetch now - also done periodically" href="{{ url_for('update', club_id=club.strava_id) }}"><i class="icon- icon-refresh"></i> Fetch rides now</a>
+<div>
+    <div id="content">
+
+        <div class="row">
+            <div class="span12">
+                <h3>{{date_start|date}} - {{date_end|date}}</h3>
+
+                <div class="row">
+                    <div class="span4">
+                        <table class="table table-hover">
+                            <thead>
+                            <th>Name</th>
+                            <th>Distance</th>
+                            </thead>
+                            <tbody>
+                            {% for result in scoreboard %}
+                            <tr>
+                                <td>{{ result.athlete.name }}</td>
+                                <td>
+                                    <a data-toggle="tooltip" data-placement="top" title="{{ result.count }} rides">
+                                        {{ result.distance|km }}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan=2>No rides =/.</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

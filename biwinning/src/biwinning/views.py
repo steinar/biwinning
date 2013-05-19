@@ -99,6 +99,21 @@ def daily_scoreboard(club_id, first_day_id=None):
         next_day_id=day_id(base_date, -days_per_request)
     )
 
+@app.route('/<club_id>/range/<start_date_id>/<end_date_id>')
+def date_range(club_id, start_date_id, end_date_id):
+    date_start, date_end = day_id_to_date(start_date_id), day_id_to_date(end_date_id)
+    club = get_club(club_id)
+    session['club_id'] = club_id
+    quantifier = AthleteDistanceByDay(club)
+    scoreboard = quantifier.date_range(date_start, date_end)
+
+    return render_template('rides-by-range.html',
+        club=club,
+        scoreboard=scoreboard,
+        date_start=date_start,
+        date_end=date_end
+    )
+
 @app.route('/<club_id>/reload-week/<week_id>')
 def reload_week(club_id, week_id):
     reload_club_week(club_id, week_id)

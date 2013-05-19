@@ -62,15 +62,26 @@
                 <ul class="nav">
                     <li class="{% if not club %}active{% endif %}"><a href="{{ url_for('clubs') }}">Clubs</a></li>
                     {% if club %}
-                    <li class="{% if request.path == url_for('club_overview', club_id=club.strava_id) %}active{% endif %}">
-                        <a href="{{ url_for('club_overview', club_id=club.strava_id) }}">Overview</a>
-                    </li>
-                    <li class="{% if request.path == url_for('daily_scoreboard', club_id=club.strava_id) %}active{% endif %}">
-                        <a href="{{ url_for('daily_scoreboard', club_id=club.strava_id) }}">Days</a>
-                    </li>
-                    <li class="{% if request.path == url_for('weekly_scoreboard', club_id=club.strava_id) %}active{% endif %}">
-                        <a href="{{ url_for('weekly_scoreboard', club_id=club.strava_id) }}">Weeks</a>
-                    </li>
+                    {% with url = url_for('club_overview', club_id=club.strava_id) %}
+                        <li class="{% if request.path == url %}active{% endif %}">
+                            <a href="{{ url }}">Overview</a>
+                        </li>
+                    {% endwith %}
+                    {% with url = url_for('daily_scoreboard', club_id=club.strava_id) %}
+                        <li class="{% if request.path == url %}active{% endif %}">
+                            <a href="{{ url_for('daily_scoreboard', club_id=club.strava_id) }}">Days</a>
+                        </li>
+                    {% endwith %}
+                    {% with url = url_for('weekly_scoreboard', club_id=club.strava_id) %}
+                        <li class="{% if request.path == url %}active{% endif %}">
+                            <a href="{{ url }}">Weeks</a>
+                        </li>
+                    {% endwith %}
+                    {% with url = url_for('date_range', club_id=club.strava_id, start_date_id='2013-05-08', end_date_id='2013-05-28') %}
+                        <li class="{% if request.path == url %}active{% endif %}">
+                            <a href="{{ url }}">Hjólað í vinnuna 2013</a>
+                        </li>
+                    {% endwith %}
                     {% endif %}
                 </ul>
             </div>
@@ -79,7 +90,7 @@
 </div>
 
 <div id="base-container" class="container">
-    {% block body %}
+    {% block body %}¡
     {% endblock %}
 </div>
 <hr>

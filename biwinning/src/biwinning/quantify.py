@@ -237,6 +237,15 @@ class AthleteDistanceByDay(AthleteDistanceByWeek):
             )
         return query
 
+    def date_range(self, date_start, date_end):
+        query = (self._fetch_data()
+                 .where(Ride.date >= date_start, Ride.date <= date_end)
+                 .group_by(Ride.athlete)
+                 .order_by(R('distance desc'))
+            )
+        return query
+
+
 
 @quantifier
 class AthleteDistanceByMonth(AthleteDistanceByWeek):

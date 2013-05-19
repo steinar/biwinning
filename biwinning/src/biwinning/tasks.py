@@ -14,9 +14,10 @@ def reload_club_week(club, week_id):
 
 def clean_club(club):
     # Remove orphan rides
-    [ride.delete_instance() for ride in get_orphan_rides(club)]
+    quantifiers = [q(club) for q in QUANTIFIERS]
+    subtract = lambda ride: [q.subtract_ride(ride) for q in quantifiers]
+    [(subtract(ride), ride.delete_instance()) for ride in get_orphan_rides(club)]
 
     # Remove orphan quantity records
-    quantifiers = [q(club) for q in QUANTIFIERS]
     for quantifier in quantifiers:
-        [quantity.delete_instance() for quantity in quantifier.orphans()]
+        quantifier.clean()

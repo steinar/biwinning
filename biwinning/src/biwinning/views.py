@@ -1,6 +1,6 @@
 import os
 import datetime
-from flask import render_template, redirect, url_for, session, send_from_directory, request
+from flask import render_template as flask_render_template, redirect, url_for, session, send_from_directory, request
 from biwinning.config import app
 from biwinning.data import get_club
 from biwinning.models import Club
@@ -10,18 +10,21 @@ from biwinning.utils import  monday, week_id_to_date, week_id, day_id, day_id_to
 
 print_safe = lambda x: x.decode('utf8', 'ignore')
 
+def render_template(*args, **kwargs):
+    kwargs.update({
+        'clubs': Club.all_augmented(),
+        'club': kwargs.get('club') or (session.get('club_id') and get_club(session.get('club_id')))
+    })
+    return flask_render_template(*args, **kwargs)
 
 @app.route('/')
 def index():
-    if session.get('club_id'):
-        return redirect(url_for('club_overview', club_id=session['club_id']))
     return redirect(url_for('clubs'))
 
 
 @app.route('/clubs')
 def clubs():
-    clubs = Club.all_augmented()
-    return render_template('clubs.html', clubs=clubs)
+    return render_template('clubs.html')
 
 @app.route('/add-club', methods=['POST'])
 def add_club():

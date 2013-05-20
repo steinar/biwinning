@@ -69,7 +69,10 @@ class Club(Model):
 
     @classmethod
     def all_augmented(cls):
-        return cls.select(cls, fn.Count(ClubAthlete.id).alias('athlete_count')).join(ClubAthlete, JOIN_LEFT_OUTER).group_by(ClubAthlete.club)
+        return (cls.select(cls, fn.Count(ClubAthlete.id).alias('athlete_count'))
+                .join(ClubAthlete, JOIN_LEFT_OUTER)
+                .group_by(ClubAthlete.club)
+                .order_by(Club.name))
 
     def __repr__(self):
         return "<Club %s: %s>" % (self.id, self.name)

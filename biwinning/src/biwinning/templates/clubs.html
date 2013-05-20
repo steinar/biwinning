@@ -11,10 +11,10 @@
             <th>Athletes</th>
             </thead>
             <tbody>
-            {% for club in clubs %}
+            {% for menu_club in clubs %}
             <tr>
-                <td><a href="{{ url_for('club_overview', club_id=club.strava_id) }}">{{club.name}}</a></td>
-                <td>{{ club.athlete_count }}</td>
+                <td><a href="{{ url_for('club_overview', club_id=menu_club.strava_id) }}">{{menu_club.name}}</a></td>
+                <td>{{ menu_club.athlete_count }}</td>
             </tr>
             {% endfor %}
             </tbody>

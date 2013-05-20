@@ -8,6 +8,7 @@ var renderChart = function (item) {
                 renderTo:item,
                 type:'bar'
             },
+            exporting: { enabled: false },
             title:{
                 text:null
             },

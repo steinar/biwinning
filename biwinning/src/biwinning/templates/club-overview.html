@@ -36,7 +36,7 @@
                     {% for result in last_28_days %}
                     <tr>
                         <td>{{ result.athlete.name }}</td>
-                        <td>
+                        <td class="right">
                             <a data-toggle="tooltip" data-placement="top" title="{{ result.count }} rides">
                                 {{ result.distance|km }}
                             </a>

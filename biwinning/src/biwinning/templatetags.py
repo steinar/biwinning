@@ -18,15 +18,15 @@ def date(date, fmt='%d/%m/%y'):
 
 @register
 def km(n):
-    return do_mark_safe("%s <small>km</small>" % round(n/1000))
+    return do_mark_safe("%s <small>km</small>" % round(n/1000,1))
 
 @register
 def meters(n):
-    return do_mark_safe("%s <small>m</small>" % round(n))
+    return do_mark_safe("%s <small>m</small>" % round(n,1))
 
 @register
 def ms2km(n):
-    return do_mark_safe("%s <small>km/h</small>" % round(n*3.6))
+    return do_mark_safe("%s <small>km/h</small>" % round(n*3.6,1))
 
 
 @register

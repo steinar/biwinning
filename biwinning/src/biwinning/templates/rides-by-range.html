@@ -14,11 +14,18 @@
                 <h3>{{date_start|date}} - {{date_end|date}}</h3>
 
                 <div class="row">
-                    <div class="span4">
+
+                        <div class="span6 pull-right">
+                            <div data-ajax-url="{{ url_for('api_date_range', club_id=club.strava_id, start_date_id=start_date_id, end_date_id=end_date_id) }}"
+                                 class='barchart'></div>
+                        </div>
+                        <div class="span6">
                         <table class="table table-hover">
                             <thead>
                             <th>Name</th>
                             <th>Distance</th>
+                            <th>Elevation gain</th>
+                            <th>Average speed</th>
                             </thead>
                             <tbody>
                             {% for result in scoreboard %}
@@ -27,6 +34,12 @@
                                 <td>
                                     <a data-toggle="tooltip" data-placement="top" title="{{ result.count }} rides">
                                         {{ result.distance|km }}
+                                    </a>
+                                </td>
+                                <td class="right">{{ result.elevation_gain|meters }}</td>
+                                <td class="right"><a data-toggle="tooltip" data-placement="top"
+                                     title="Moving time {{ result.moving_time|minutes }}">
+                                    {{(result.distance/result.moving_time)|ms2km }}
                                     </a>
                                 </td>
                             </tr>

@@ -111,7 +111,9 @@ def date_range(club_id, start_date_id, end_date_id):
         club=club,
         scoreboard=scoreboard,
         date_start=date_start,
-        date_end=date_end
+        date_end=date_end,
+        start_date_id=start_date_id,
+        end_date_id=end_date_id,
     )
 
 @app.route('/<club_id>/reload-week/<week_id>')
